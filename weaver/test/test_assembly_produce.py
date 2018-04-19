@@ -18,27 +18,32 @@ def database(client):
     yield db
     client.drop_database(db_name)
 
-def test_1(database):
-    print()
-
+@pytest.fixture
+def manager(database):
     e = elephant.collection_local.CollectionLocal(database.test)
     e = weaver.Engine(e)
-
     e_parts = elephant.collection_local.CollectionLocal(database.test_parts)
     e_parts = weaver.EngineParts(e_parts)
+    manager = weaver.Manager(e, e_parts)
+    return manager
 
+def test_1(manager):
+    print()
 
     part_1 = {
             'description': 'part 1',
             'cost': 10,
             }
-    part_1_id = e.put("master", None, part_1).inserted_id
+    part_1_id = manager.engine_designs.put("master", None, part_1).inserted_id
+
     part_2 = {
             'description': 'part 2',
             'cost': 10,
             }
-    part_3 = {
-            'description': 'part 3',
+    part_2_id = manager.engine_designs.put("master", None, part_2).inserted_id
+
+    assy_1 = {
+            'description': 'assy 1',
             'tags': ['assembly'],
             'materials': [
                 {
@@ -48,11 +53,10 @@ def test_1(database):
                     },
                 ],
             }
-    part_2_id = e.put("master", None, part_2).inserted_id
-    part_3_id = e.put("master", None, part_3).inserted_id
+    assy_1_id = manager.engine_designs.put("master", None, assy_1).inserted_id
 
-    assy_1 = {
-        'description': 'assy 1',
+    assy_2 = {
+        'description': 'assy 2',
         'tags': ['assembly'],
         'materials': [
             {
@@ -66,17 +70,15 @@ def test_1(database):
                 'consumed': 2,
                 },
             {
-                'part_id': part_3_id,
+                'part_id': assy_1_id,
                 'quantity': 1,
                 'consumed': 1,
                 },
             ]
         }
-    assy_1_id = e.put("master", None, assy_1).inserted_id
+    assy_2_id = manager.engine_designs.put("master", None, assy_2).inserted_id
 
-    manager = weaver.Manager(e, e_parts)
-
-    a = manager.engine_designs.get_content('master', assy_1_id)
+    a = manager.engine_designs.get_content('master', assy_2_id)
 
     a.produce(manager, 1)
 
@@ -85,7 +87,7 @@ def test_1(database):
     print(f'cost={cost}')
 
     print('parts:')
-    for p in e_parts.collection.find({}):
+    for p in manager.engine_parts.collection.find({}):
         for k, v in p.items():
             if k == '_elephant':
                 print('elephant')
