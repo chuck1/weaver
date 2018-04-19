@@ -44,7 +44,6 @@ def test_1(manager):
 
     assy_1 = {
             'description': 'assy 1',
-            'tags': ['assembly'],
             'materials': [
                 {
                     'part_id': part_1_id,
@@ -57,7 +56,6 @@ def test_1(manager):
 
     assy_2 = {
         'description': 'assy 2',
-        'tags': ['assembly'],
         'materials': [
             {
                 'part_id': part_1_id,

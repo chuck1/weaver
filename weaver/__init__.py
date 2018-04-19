@@ -78,7 +78,7 @@ class Engine:
 
     def get_content(self, ref, part_id):
         part = self.el_engine.get_content(ref, part_id)
-        if 'assembly' in part.get('tags', []):
+        if 'materials' in part:
             return Assembly(part_id, part)
         else:
             return Part(part_id, part)
