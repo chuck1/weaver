@@ -1,6 +1,7 @@
 
 class _AArray:
-    def __init__(self, engine, _id, d):
+    def __init__(self, manager, engine, _id, d):
+        self.manager = manager
         self.engine = engine
         self._id = _id
         self.d = d

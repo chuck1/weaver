@@ -57,9 +57,11 @@ def test_1(manager):
 
     a = manager.engine_designs.get_content('master', assy_2_id)
 
-    a.produce(manager, 1)
+    purchased = a.produce(manager, 1)
 
-    cost = sum([p.cost(manager) for p in manager.purchased])
+    a.print_info()
+
+    cost = sum([p.cost(manager) for p in purchased])
 
     print(f'cost={cost}')
 
