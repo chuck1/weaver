@@ -68,6 +68,10 @@ class Engine:
     def put(self, ref, part_id, part):
         return self.el_engine.put(ref, part_id, part)
 
+    def put_new(self, ref, part):
+        res = self.el_engine.put(ref, None, part)
+        return self.get_content(ref, res.inserted_id)
+
     def get_content(self, ref, part_id):
         part = self.el_engine.get_content(ref, part_id)
         if 'materials' in part:
