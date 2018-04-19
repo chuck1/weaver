@@ -1,3 +1,4 @@
+import argparse
 
 class _AArray:
     def __getitem__(self, k):
@@ -138,4 +139,47 @@ class Assembly(_AArray):
             manager.consume(m)
 
         manager.receive(self.part_id, q)
+
+def shell(args):
+    import pymongo
+    import elephant.collection_local
+
+    client = pymongo.MongoClient(args.client)
+    database = client[args.db]
+
+    e_designs = elephant.collection_local.CollectionLocal(database.test_designs)
+    e_designs = Engine(e_designs)
+
+    e_parts = elephant.collection_local.CollectionLocal(database.test_parts)
+    e_parts = EngineParts(e_parts)
+
+    manager = Manager(e_designs, e_parts)
+
+    import readline
+    import code
+    variables = globals().copy()
+    variables.update(locals())
+    shell = code.InteractiveConsole(variables)
+    shell.interact()
+    
+def main(av):
+
+    parser = argparse.ArgumentParser()
+
+    def _help(args):
+        parser.print_usage()
+
+    parser.set_defaults(func=_help)
+
+    subparsers = parser.add_subparsers()
+
+    parser_shell = subparsers.add_parser('shell')
+    parser_shell.add_argument('client')
+    parser_shell.add_argument('db')
+    parser_shell.set_defaults(func=shell)
+
+    args = parser.parse_args(av)
+    args.func(args)
+
+
 
