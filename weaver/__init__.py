@@ -71,9 +71,9 @@ class Engine:
     def get_content(self, ref, part_id):
         part = self.el_engine.get_content(ref, part_id)
         if 'materials' in part:
-            return weaver.design.Assembly(part_id, part)
+            return weaver.design.Assembly(self, part_id, part)
         else:
-            return weaver.design.Part(part_id, part)
+            return weaver.design.Part(self, part_id, part)
 
 class EngineParts:
     def __init__(self, el_engine):

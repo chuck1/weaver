@@ -1,17 +1,15 @@
 import weaver.util
 
 class Part(weaver.util._AArray):
-    def __init__(self, part_id, d):
-        self.part_id = part_id
-        self.d = d
+    def __init__(self, e, part_id, d):
+        super(Part, self).__init__(e, part_id, d)
 
     def visit_manager_produce(self, manager, m, q):
         manager.purchase(m, q)
 
 class Assembly(weaver.util._AArray):
-    def __init__(self, part_id, d):
-        self.part_id = part_id
-        self.d = d
+    def __init__(self, e, part_id, d):
+        super(Assembly, self).__init__(e, part_id, d)
 
     def visit_manager_produce(self, manager, m, q):
         self.produce(manager, q)
@@ -41,5 +39,5 @@ class Assembly(weaver.util._AArray):
 
             manager.consume(m)
 
-        manager.receive(self.part_id, q)
+        manager.receive(self._id, q)
 
