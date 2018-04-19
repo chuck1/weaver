@@ -15,47 +15,62 @@ class PurchaseLine:
         self.q = q
 
     def cost(self, manager):
-        part = manager.engine.get_content("master", self.part_id)
+        part = manager.engine_designs.get_content("master", self.part_id)
         cost = part['cost'] * self.q
         return cost
 
 class Manager:
-    def __init__(self, engine):
-        self.engine = engine
-        self.inventory = []
+    def __init__(self, engine_designs, engine_parts):
+        self.engine_designs = engine_designs
+        self.engine_parts = engine_parts
         self.purchased = []
 
     def get_inventory(self, part_id):
-        for i in self.inventory:
-            if part_id == i['part_id']:
-                return i['quantity']
-        return 0
+
+        res = self.engine_parts.collection.aggregate([
+            {'$match': {'part_id': part_id}},
+            {'$group': {'_id': '$part_id', 'total': {'$sum': '$quantity'}}},
+            ])
+
+        return sum([r['total'] for r in res])
 
     def purchase(self, part_id, q):
         self.purchased.append(PurchaseLine(part_id, q))
         self.receive(part_id, q)
 
     def receive(self, part_id, q):
-        for i in self.inventory:
-            if part_id == i['part_id']:
-                i['quantity'] += q
-                return
         
-        self.inventory.append({
+        res = self.engine_parts.put("master", None, {
             'part_id': part_id,
             'quantity': q,
             })
 
     def consume(self, m):
-        for i in self.inventory:
-            if m['part_id'] == i['part_id']:
-                i['quantity'] -= m['consumed']
+
+        parts = self.engine_parts.collection.find({'part_id': m['part_id'], 'quantity': {'$gt': 0}})
+        
+        c = m['consumed']
+
+        for part in parts:
+            if part['quantity'] >= c:
+                part['quantity'] -= c
+                c = 0
+                self.engine_parts.put("master", part["_id"], part)
                 return
-        raise Exception('part not found')
+            else:
+                c -= part['quantity']
+                part['quantity'] = 0
+                self.engine_parts.put("master", part["_id"], part)
+
+        raise Exception('insufficient part quantity')
 
 class Engine:
     def __init__(self, el_engine):
         self.el_engine = el_engine
+
+    @property
+    def collection(self):
+        return self.el_engine.collection
 
     def put(self, ref, part_id, part):
         return self.el_engine.put(ref, part_id, part)
@@ -66,6 +81,20 @@ class Engine:
             return Assembly(part_id, part)
         else:
             return Part(part_id, part)
+
+class EngineParts:
+    def __init__(self, el_engine):
+        self.el_engine = el_engine
+
+    @property
+    def collection(self):
+        return self.el_engine.collection
+
+    def put(self, ref, part_id, part):
+        return self.el_engine.put(ref, part_id, part)
+
+    def get_content(self, ref, part_id):
+        return self.el_engine.get_content(ref, part_id)
 
 class Part(_AArray):
     def __init__(self, part_id, d):
@@ -87,7 +116,7 @@ class Assembly(_AArray):
         
         for m in self.d['materials']:
 
-            part = manager.engine.get_content("master", m['part_id'])
+            part = manager.engine_designs.get_content("master", m['part_id'])
         
             # check inventory
 

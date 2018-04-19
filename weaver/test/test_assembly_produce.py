@@ -23,7 +23,9 @@ def test_1(database):
 
     e = elephant.collection_local.CollectionLocal(database.test)
     e = weaver.Engine(e)
-    
+
+    e_parts = elephant.collection_local.CollectionLocal(database.test_parts)
+    e_parts = weaver.EngineParts(e_parts)
 
 
     part_1 = {
@@ -72,22 +74,25 @@ def test_1(database):
         }
     assy_1_id = e.put("master", None, assy_1).inserted_id
 
-    manager = weaver.Manager(e)
+    manager = weaver.Manager(e, e_parts)
 
-    a = manager.engine.get_content('master', assy_1_id)
+    a = manager.engine_designs.get_content('master', assy_1_id)
 
     a.produce(manager, 1)
-
-    print('purchased')
-    for p in manager.purchased:
-
-        part = e.get_content("master", p.part_id)
-
-        cost = part['cost'] * p.q
-
-        print(f'q={p.q} part={part} cost={cost}')
 
     cost = sum([p.cost(manager) for p in manager.purchased])
 
     print(f'cost={cost}')
+
+    print('parts:')
+    for p in e_parts.collection.find({}):
+        for k, v in p.items():
+            if k == '_elephant':
+                print('elephant')
+                for c_id, c in v['commits'].items():
+                    print('  commit')
+                    for ch in c['changes']:
+                        print(f'    {ch}')
+            else:
+                print(f'{k:16} {v}')
 

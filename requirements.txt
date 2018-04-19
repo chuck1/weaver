@@ -1,0 +1,10 @@
+-e git+git@github.com:chuck1/aardvark@8883fac44ef7031eb22b2ee4d87a2627105f4a54#egg=aardvark
+attrs==17.4.0
+-e git+git@github.com:chuck1/elephant.git@09e31ddeb340d98f2914483b53e635b95ad85af4#egg=elephant
+more-itertools==4.1.0
+pluggy==0.6.0
+py==1.5.3
+pymongo==3.6.1
+pytest==3.5.0
+six==1.11.0
+-e git+git@github.com:chuck1/weaver@d4ba7ba6f60d790830dd51b04b9f939a410fd9b7#egg=weaver
