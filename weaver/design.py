@@ -27,7 +27,7 @@ class Assembly(weaver.util._AArray):
             print(indent + f'consumed: {m0["consumed"]}')
 
         for m in self.d['materials']:
-            part = self.manager.engine_designs.get_content("master", {'_id': m['part_id']})
+            part = self.manager.engine_designs.get_content({'_id': m['part_id']})
             part.print_info(indent + '  ', m)
 
     def produce(self, manager, q):
@@ -36,7 +36,7 @@ class Assembly(weaver.util._AArray):
 
         for m in self.d['materials']:
 
-            part = manager.engine_designs.get_content("master", {'_id': m['part_id']})
+            part = manager.engine_designs.get_content({'_id': m['part_id']})
         
             # check inventory
 
