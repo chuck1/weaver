@@ -1,12 +1,14 @@
 import bson
 import datetime
 
-class _AArray:
+import elephant.file
+
+class _AArray(elephant.file.File):
     def __init__(self, manager, engine, _id, d):
+        super(_AArray, self).__init__(d)
         self.manager = manager
         self.engine = engine
         self._id = _id
-        self.d = d
 
     def __getitem__(self, k):
         return self.d[k]

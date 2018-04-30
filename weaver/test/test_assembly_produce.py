@@ -4,7 +4,7 @@ import pytest
 import pymongo
 
 import weaver
-import elephant.collection_local
+import elephant.local_
 
 def test_1(manager):
     print()
@@ -66,14 +66,17 @@ def test_1(manager):
     print(f'cost={cost}')
 
     print('parts:')
-    for p in manager.engine_parts.collection.find({}):
+    for p in manager.engine_parts.el_engine.db.files.find({}):
         for k, v in p.items():
             if k == '_elephant':
                 print('elephant')
-                for c_id, c in v['commits'].items():
-                    print('  commit')
-                    for ch in c['changes']:
-                        print(f'    {ch}')
+                print(v)
             else:
                 print(f'{k:16} {v}')
+
+        
+    assy_2 = manager.engine_designs.get_content({"_id": assy_2_id})
+
+    print(assy_2)
+    print(list(assy_2.commits()))
 

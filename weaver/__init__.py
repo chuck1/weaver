@@ -27,7 +27,7 @@ class Manager:
 
     def get_inventory(self, part_id):
 
-        res = self.engine_parts.collection.aggregate([
+        res = self.engine_parts.el_engine.db.files.aggregate([
             {'$match': {'part_id': part_id}},
             {'$group': {'_id': '$part_id', 'total': {'$sum': '$quantity'}}},
             ])
@@ -47,7 +47,7 @@ class Manager:
 
     def consume(self, m):
 
-        parts = self.engine_parts.collection.find({'part_id': m['part_id'], 'quantity': {'$gt': 0}})
+        parts = self.engine_parts.el_engine.db.files.find({'part_id': m['part_id'], 'quantity': {'$gt': 0}})
         
         c = m['consumed']
 
@@ -69,6 +69,12 @@ class Engine:
         self.el_engine = el_engine
         self.ref = 'master'
 
+    def _factory(self, d):
+        if 'materials' in d:
+            return weaver.design.Assembly(self.manager, self, d["_id"], d)
+        else:
+            return weaver.design.Part(self.manager, self, d["_id"], d)
+
     @property
     def collection(self):
         return self.el_engine.collection
@@ -83,19 +89,13 @@ class Engine:
     def get_content(self, filt):
         part = self.el_engine.get_content(self.ref, filt)
         if part is None: return
-        part_id = part['_id']
-        if 'materials' in part:
-            return weaver.design.Assembly(self.manager, self, part_id, part)
-        else:
-            return weaver.design.Part(self.manager, self, part_id, part)
+        part_id = part.d['_id']
+        return self._factory(part.d)
 
     def find(self, filt):
         def _f(d):
             _id = d['_id']
-            if 'materials' in d:
-                return weaver.design.Assembly(self.manager, self, _id, d)
-            else:
-                return weaver.design.Part(self.manager, self, _id, d)
+            return self._factory(d)
 
         return [_f(d) for d in self.el_engine.collection.find(filt)]
 
@@ -103,9 +103,9 @@ class EngineParts:
     def __init__(self, el_engine):
         self.el_engine = el_engine
 
-    @property
-    def collection(self):
-        return self.el_engine.collection
+    #@property
+    #def collection(self):
+    #    return self.el_engine.collection
 
     def put(self, ref, part_id, part):
         return self.el_engine.put(ref, part_id, part)

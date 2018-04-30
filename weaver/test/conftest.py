@@ -18,11 +18,13 @@ def database(client):
 
 @pytest.fixture
 def manager(database):
-    e = elephant.collection_local.CollectionLocal(database.test)
-    e = weaver.Engine(e)
-    e_parts = elephant.collection_local.CollectionLocal(database.test_parts)
+    e_designs = elephant.local_.Local(database.test)
+    e_designs = weaver.Engine(e_designs)
+
+    e_parts = elephant.local_.Local(database.test_parts)
     e_parts = weaver.EngineParts(e_parts)
-    manager = weaver.Manager(e, e_parts)
+
+    manager = weaver.Manager(e_designs, e_parts)
     return manager
 
 
