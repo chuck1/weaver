@@ -1,4 +1,4 @@
 [
-  "weaver/test/test_aarray.py::test_1",
-  "weaver/test/test_assembly_produce.py::test_1"
+  "weaver/test/test_assembly_produce.py::test_1",
+  "weaver/test/test_assembly_produce.py::test_2"
 ]

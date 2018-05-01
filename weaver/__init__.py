@@ -1,19 +1,20 @@
 import argparse
 
+import elephant.local_
 import weaver.design
 
 class PurchaseLine:
-    def __init__(self, part_id, q):
-        self.part_id = part_id
+    def __init__(self, part, q):
+        self.part = part
         self.q = q
 
     def cost(self, manager):
-        part = manager.engine_designs.get_content({'_id': self.part_id})
+        part = manager.engine_designs.get_content(self.part['ref'], {'_id': self.part['_id']})
         cost = part['cost'] * self.q
         return cost
 
     def print_info(self, manager):
-        part = manager.engine_designs.get_content({'_id': self.part_id})
+        part = manager.engine_designs.get_content(self.part['ref'], {'_id': self.part_id})
         cost = part['cost'] * self.q
         print(f'{part["description"]} {cost}')
 
@@ -25,29 +26,32 @@ class Manager:
         self.engine_designs.manager = self
         self.engine_parts.manager = self
 
-    def get_inventory(self, part_id):
+    def get_inventory(self, part):
 
-        res = self.engine_parts.el_engine.db.files.aggregate([
-            {'$match': {'part_id': part_id}},
+        res = self.engine_parts.db.files.aggregate([
+            {'$match': {
+                'part._id': part['_id'],
+                'part.ref': part['ref']
+            }},
             {'$group': {'_id': '$part_id', 'total': {'$sum': '$quantity'}}},
             ])
 
         return sum([r['total'] for r in res])
 
-    def purchase(self, part_id, q):
-        self.receive(part_id, q)
-        return [PurchaseLine(part_id, q)]
+    def purchase(self, part, q):
+        self.receive(part, q)
+        return [PurchaseLine(part, q)]
 
-    def receive(self, part_id, q):
+    def receive(self, part, q):
         
         res = self.engine_parts.put("master", None, {
-            'part_id': part_id,
+            'part': part,
             'quantity': q,
             })
 
     def consume(self, m):
 
-        parts = self.engine_parts.el_engine.db.files.find({'part_id': m['part_id'], 'quantity': {'$gt': 0}})
+        parts = self.engine_parts.db.files.find({'part': m['part'], 'quantity': {'$gt': 0}})
         
         c = m['consumed']
 
@@ -64,55 +68,15 @@ class Manager:
 
         raise Exception('insufficient part quantity')
 
-class Engine:
-    def __init__(self, el_engine):
-        self.el_engine = el_engine
-        self.ref = 'master'
-
+class EngineDesigns(elephant.local_.Local):
     def _factory(self, d):
         if 'materials' in d:
             return weaver.design.Assembly(self.manager, self, d["_id"], d)
         else:
             return weaver.design.Part(self.manager, self, d["_id"], d)
 
-    @property
-    def collection(self):
-        return self.el_engine.collection
-
-    def put(self, part_id, part):
-        return self.el_engine.put(self.ref, part_id, part)
-
-    def put_new(self, part):
-        res = self.el_engine.put(self.ref, None, part)
-        return self.get_content({'_id': res.inserted_id})
-
-    def get_content(self, filt):
-        part = self.el_engine.get_content(self.ref, filt)
-        if part is None: return
-        part_id = part.d['_id']
-        return self._factory(part.d)
-
-    def find(self, filt):
-        def _f(d):
-            _id = d['_id']
-            return self._factory(d)
-
-        return [_f(d) for d in self.el_engine.collection.find(filt)]
-
-class EngineParts:
-    def __init__(self, el_engine):
-        self.el_engine = el_engine
-
-    #@property
-    #def collection(self):
-    #    return self.el_engine.collection
-
-    def put(self, ref, part_id, part):
-        return self.el_engine.put(ref, part_id, part)
-
-    def get_content(self, ref, part_id):
-        return self.el_engine.get_content(ref, part_id)
-
+class EngineParts(elephant.local_.Local):
+    pass
 
 def shell(args):
     import pymongo

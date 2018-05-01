@@ -4,10 +4,9 @@ import datetime
 import elephant.file
 
 class _AArray(elephant.file.File):
-    def __init__(self, manager, engine, _id, d):
-        super(_AArray, self).__init__(d)
+    def __init__(self, manager, e, _id, d):
+        super(_AArray, self).__init__(e, d)
         self.manager = manager
-        self.engine = engine
         self._id = _id
 
     def __getitem__(self, k):
@@ -16,7 +15,7 @@ class _AArray(elephant.file.File):
     def __setitem__(self, k, v):
         self.d[k] = v
 
-        self.engine.put(self._id, self.d)
+        self.e.put("master", self._id, self.d)
 
     def get(self, k, default):
         if k in self.d:

@@ -7,9 +7,9 @@ def test_1(manager):
             'cost': 10,
             }
     
-    part_1_id = manager.engine_designs.put(None, part_1).inserted_id
+    part_1_id = manager.engine_designs.put("master", None, part_1).inserted_id
 
-    p = manager.engine_designs.get_content(part_1_id)
+    p = manager.engine_designs.get_content("master", part_1_id)
 
     print(p)
 
