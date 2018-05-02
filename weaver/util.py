@@ -24,30 +24,7 @@ class _AArray(elephant.file.File):
             return default
 
     def to_array(self):
-        
-        def _f1(v):
-            if isinstance(v, datetime.datetime):
-                v = str(v)
-
-            if isinstance(v, bson.objectid.ObjectId):
-                v = str(v)
-
-            if isinstance(v, list):
-                v = [_f1(i) for i in v]
-            
-            if isinstance(v, dict):
-                v = dict(_f(k1, v1) for k1, v1 in v.items())
-                
-            return v
-
-        def _f(k, v):
-            return k, _f1(v)
-
-        d0 = dict(_f(k, v) for k, v in self.d.items())
-
-        if '_elephant' in d0:
-            del d0['_elephant']
-
+        d0 = dict(self.d)
         return d0
 
 
