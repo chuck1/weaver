@@ -33,7 +33,7 @@ class Assembly(weaver.util._AArray):
             print(indent + f'consumed: {m0["consumed"]}')
 
         for m in self.d['materials']:
-            part = self.manager.engine_designs.get_content(m['part']['ref'], {'_id': m['part']['_id']})
+            part = self.manager.e_designs.get_content(m['part']['ref'], {'_id': m['part']['_id']})
             part.print_info(indent + '  ', m)
 
     def freeze(self):
@@ -48,7 +48,7 @@ class Assembly(weaver.util._AArray):
 
         for m in self.d['materials']:
 
-            part = manager.engine_designs.get_content(m['part']['ref'], {'_id': m['part']['_id']})
+            part = manager.e_designs.get_content(m['part']['ref'], {'_id': m['part']['_id']})
         
             # check inventory
 

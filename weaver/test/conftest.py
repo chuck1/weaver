@@ -23,4 +23,8 @@ def manager(database):
     manager = weaver.Manager(e_designs, e_parts)
     return manager
 
+@pytest.fixture
+def user(database):
+    user_id = database.users.insert_one({}).inserted_id
+    return database.users.find_one({"_id": user_id})
 

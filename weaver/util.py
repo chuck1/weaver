@@ -15,7 +15,7 @@ class _AArray(elephant.file.File):
     def __setitem__(self, k, v):
         self.d[k] = v
 
-        self.e.put("master", self._id, self.d)
+        self.e.put("master", self._id, self.d, self.user["_id"])
 
     def get(self, k, default):
         if k in self.d:

@@ -1,5 +1,5 @@
 
-def test_1(manager):
+def test_1(user, manager):
     print()
 
     part_1 = {
@@ -7,9 +7,11 @@ def test_1(manager):
             'cost': 10,
             }
     
-    part_1_id = manager.engine_designs.put("master", None, part_1).inserted_id
+    part_1_id = manager.e_designs.put("master", None, part_1, user["_id"]).inserted_id
 
-    p = manager.engine_designs.get_content("master", part_1_id)
+    p = manager.e_designs.get_content("master", part_1_id)
+
+    p.user = user
 
     print(p)
 

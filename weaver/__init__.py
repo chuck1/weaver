@@ -9,26 +9,26 @@ class PurchaseLine:
         self.q = q
 
     def cost(self, manager):
-        part = manager.engine_designs.get_content(self.part['ref'], {'_id': self.part['_id']})
+        part = manager.e_designs.get_content(self.part['ref'], {'_id': self.part['_id']})
         cost = part['cost'] * self.q
         return cost
 
     def print_info(self, manager):
-        part = manager.engine_designs.get_content(self.part['ref'], {'_id': self.part_id})
+        part = manager.e_designs.get_content(self.part['ref'], {'_id': self.part_id})
         cost = part['cost'] * self.q
         print(f'{part["description"]} {cost}')
 
 class Manager:
-    def __init__(self, engine_designs, engine_parts):
-        self.engine_designs = engine_designs
-        self.engine_parts = engine_parts
+    def __init__(self, e_designs, e_parts):
+        self.e_designs = e_designs
+        self.e_parts = e_parts
 
-        self.engine_designs.manager = self
-        self.engine_parts.manager = self
+        self.e_designs.manager = self
+        self.e_parts.manager = self
 
     def get_inventory(self, part):
 
-        res = self.engine_parts.db.files.aggregate([
+        res = self.e_parts.coll.files.aggregate([
             {'$match': {
                 'part._id': part['_id'],
                 'part.ref': part['ref']
@@ -44,14 +44,15 @@ class Manager:
 
     def receive(self, part, q):
         
-        res = self.engine_parts.put("master", None, {
+        res = self.e_parts.put("master", None, {
             'part': part,
             'quantity': q,
-            })
+            },
+            None)
 
     def consume(self, m):
 
-        parts = self.engine_parts.db.files.find({'part': m['part'], 'quantity': {'$gt': 0}})
+        parts = self.e_parts.coll.files.find({'part': m['part'], 'quantity': {'$gt': 0}})
         
         c = m['consumed']
 
@@ -59,12 +60,12 @@ class Manager:
             if part['quantity'] >= c:
                 part['quantity'] -= c
                 c = 0
-                self.engine_parts.put("master", part["_id"], part)
+                self.e_parts.put("master", part["_id"], part, None)
                 return
             else:
                 c -= part['quantity']
                 part['quantity'] = 0
-                self.engine_parts.put("master", part["_id"], part)
+                self.e_parts.put("master", part["_id"], part)
 
         raise Exception('insufficient part quantity')
 
