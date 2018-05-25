@@ -23,7 +23,7 @@ class _AArray(elephant.file.File):
         else:
             return default
 
-    def to_array(self):
+    async def to_array(self):
         d0 = dict(self.d)
         return d0
 
