@@ -1,8 +1,9 @@
+import elephant.local_
 import weaver.util
 
-class Part(weaver.util._AArray):
+class Design(elephant.local_.File):
     def __init__(self, manager, e, part_id, d):
-        super(Part, self).__init__(manager, e, part_id, d)
+        super(Design, self).__init__(e, d)
 
     def visit_manager_produce(self, manager, m, q):
         return manager.purchase(m, q)
@@ -19,12 +20,9 @@ class Part(weaver.util._AArray):
             'ref': self.d['_elephant']['refs'][self.d['_elephant']['ref']],
             }
 
-class Assembly(weaver.util._AArray):
+class Assembly(Design):
     def __init__(self, manager, e, part_id, d):
         super(Assembly, self).__init__(manager, e, part_id, d)
-
-    def visit_manager_produce(self, manager, m, q):
-        return self.produce(manager, q)
 
     def print_info(self, indent='', m0=None):
         print(indent + f'{self["description"]}')
@@ -35,12 +33,6 @@ class Assembly(weaver.util._AArray):
         for m in self.d['materials']:
             part = self.manager.e_designs.get_content(m['part']['ref'], {'_id': m['part']['_id']})
             part.print_info(indent + '  ', m)
-
-    def freeze(self):
-        return {
-            '_id': self.d['_id'],
-            'ref': self.d['_elephant']['refs'][self.d['_elephant']['ref']],
-            }
 
     def produce(self, manager, q):
 

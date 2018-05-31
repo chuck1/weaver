@@ -69,14 +69,14 @@ class Manager:
 
         raise Exception('insufficient part quantity')
 
-class EngineDesigns(elephant.local_.Local):
+class EngineDesigns(elephant.local_.Engine):
     def _factory(self, d):
         if 'materials' in d:
             return weaver.design.Assembly(self.manager, self, d["_id"], d)
         else:
-            return weaver.design.Part(self.manager, self, d["_id"], d)
+            return weaver.design.Design(self.manager, self, d["_id"], d)
 
-class EngineParts(elephant.local_.Local):
+class EngineParts(elephant.local_.Engine):
     pass
 
 def shell(args):
