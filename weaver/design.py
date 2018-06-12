@@ -5,8 +5,8 @@ class Design(elephant.local_.File):
     def __init__(self, manager, e, part_id, d):
         super(Design, self).__init__(e, d)
 
-    def visit_manager_produce(self, manager, m, q):
-        return manager.purchase(m, q)
+    def visit_manager_produce(self, user, manager, m, q):
+        return manager.purchase(user, m, q)
 
     def print_info(self, indent='', m=None):
         print(indent + f'{self["description"]}')
@@ -34,13 +34,13 @@ class Assembly(Design):
             part = self.manager.e_designs.get_content(m['part']['ref'], {'_id': m['part']['_id']})
             part.print_info(indent + '  ', m)
 
-    def produce(self, manager, q):
+    def produce(self, user, manager, q):
 
         purchased = []
 
         for m in self.d['materials']:
 
-            part = manager.e_designs.get_content(m['part']['ref'], {'_id': m['part']['_id']})
+            part = manager.e_designs.get_content(m['part']['ref'], user, {'_id': m['part']['_id']})
         
             # check inventory
 
@@ -51,7 +51,7 @@ class Assembly(Design):
             if d > 0:
                 # insufficient inventory
                 
-                purchased1 = part.visit_manager_produce(manager, m['part'], d)
+                purchased1 = part.visit_manager_produce(user, manager, m['part'], d)
 
                 purchased += purchased1
 
@@ -64,7 +64,7 @@ class Assembly(Design):
 
             manager.consume(m)
 
-        manager.receive(self.freeze(), q)
+        manager.receive(user, self.freeze(), q)
 
         return purchased
 

@@ -38,17 +38,17 @@ class Manager:
 
         return sum([r['total'] for r in res])
 
-    def purchase(self, part, q):
-        self.receive(part, q)
+    def purchase(self, user, part, q):
+        self.receive(user, part, q)
         return [PurchaseLine(part, q)]
 
-    def receive(self, part, q):
+    def receive(self, user, part, q):
         
         res = self.e_parts.put("master", None, {
             'part': part,
             'quantity': q,
             },
-            None)
+            user)
 
     def consume(self, m):
 
