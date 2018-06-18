@@ -2,7 +2,7 @@ import elephant.local_
 import weaver.util
 
 class Design(elephant.local_.File):
-    def __init__(self, manager, e, part_id, d):
+    def __init__(self, manager, e, d):
         super(Design, self).__init__(e, d)
 
     def visit_manager_produce(self, user, manager, m, q):
@@ -21,8 +21,8 @@ class Design(elephant.local_.File):
             }
 
 class Assembly(Design):
-    def __init__(self, manager, e, part_id, d):
-        super(Assembly, self).__init__(manager, e, part_id, d)
+    def __init__(self, manager, e, d):
+        super(Assembly, self).__init__(manager, e, d)
 
     def print_info(self, indent='', m0=None):
         print(indent + f'{self["description"]}')

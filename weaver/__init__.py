@@ -72,9 +72,9 @@ class Manager:
 class EngineDesigns(elephant.local_.Engine):
     def _factory(self, d):
         if 'materials' in d:
-            return weaver.design.Assembly(self.manager, self, d["_id"], d)
+            return weaver.design.Assembly(self.manager, self, d)
         else:
-            return weaver.design.Design(self.manager, self, d["_id"], d)
+            return weaver.design.Design(self.manager, self, d)
 
 class EngineParts(elephant.local_.Engine):
     pass
