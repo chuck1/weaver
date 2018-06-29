@@ -20,6 +20,21 @@ class Design(elephant.local_.File):
             'ref': self.d['_elephant']['refs'][self.d['_elephant']['ref']],
             }
 
+    def list_upstream(self, filt):
+
+        for m in self.d.get("materials", []):
+            if m is None: continue
+
+            u_id = m["part"]["_id"]
+                
+            if _in(u_id, files1): continue
+
+            u = self.manager.e_designs.get_content(m["part"]["ref"], {"_id": u_id})
+            files1.append(u)
+            _search(u, files1)
+
+
+
 class Assembly(Design):
     def __init__(self, manager, e, d):
         super(Assembly, self).__init__(manager, e, d)
