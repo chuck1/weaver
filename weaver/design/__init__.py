@@ -31,6 +31,11 @@ class Design(elephant.local_.File):
 
             yield
 
+    async def to_array(self):
+        d = dict(self.d)
+        d["_collection"] = "weaver designs"
+        return d
+
 
 class Assembly(Design):
     def __init__(self, manager, e, d):
