@@ -32,6 +32,7 @@ class Engine(elephant.local_.Engine):
         yield {"$group": {
                 "_id": "$_id",
                 "materials": {"$push": "$materials"},
+                "tags": {"$first": "$tags"},
                 }}
 
 
