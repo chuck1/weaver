@@ -24,7 +24,7 @@ class Engine(elephant.local_.Engine):
         yield {"$match": {"materials": {"$ne": None}}}
         yield {"$lookup": {
                 "from": "weaver.designs.files", 
-                "let": {"material_id": "$materials.part._id"}, 
+                "let": {"material_id": "$materials.part.id"}, 
                 "pipeline": [{"$match": {"$expr": {"$eq": ["$_id", "$$material_id"]}}}], 
                 "as": "materials._design",
                 }}
