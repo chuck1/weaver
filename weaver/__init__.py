@@ -2,6 +2,8 @@ import argparse
 
 import elephant.local_
 import weaver.design
+import weaver.design.query
+import weaver.recipe.query
 
 class PurchaseLine:
     def __init__(self, part, q):
@@ -19,12 +21,23 @@ class PurchaseLine:
         print(f'{part["description"]} {cost}')
 
 class Manager:
-    def __init__(self, e_designs, e_parts):
-        self.e_designs = e_designs
-        self.e_parts = e_parts
+    def __init__(self, db, h):
+        self.h = h
 
-        self.e_designs.manager = self
-        self.e_parts.manager = self
+        self.e_designs = EngineDesigns(
+                self,
+                db.weaver.designs,
+                weaver.design.query.Engine(db.weaver.designs.queries))
+
+        self.e_parts = EngineParts(
+                self,
+                db.weaver.parts,
+                elephant.local_.Engine(db.weaver.parts.queries))
+
+        self.e_recipes = EngineRecipes(
+                self,
+                db.weaver.recipes,
+                weaver.recipe.query.Engine(db.weaver.recipes.queries))
 
     def get_inventory(self, part):
 
@@ -70,14 +83,31 @@ class Manager:
         raise Exception('insufficient part quantity')
 
 class EngineDesigns(elephant.local_.Engine):
+    def __init__(self, manager, coll, e_queries):
+        super().__init__(coll, e_queries)
+        self.manager = manager
+        self.h = manager.h
+
     def _factory(self, d):
         if 'materials' in d:
             return weaver.design.Assembly(self.manager, self, d)
         else:
             return weaver.design.Design(self.manager, self, d)
 
+class EngineRecipes(elephant.local_.Engine):
+    def __init__(self, manager, coll, e_queries):
+        super().__init__(coll, e_queries)
+        self.manager = manager
+        self.h = manager.h
+
+    def _factory(self, d):
+        return weaver.design.Recipe(self.manager, self, d)
+
 class EngineParts(elephant.local_.Engine):
-    pass
+    def __init__(self, manager, coll, e_queries):
+        super().__init__(coll, e_queries)
+        self.manager = manager
+        self.h = manager.h
 
 def shell(args):
     import pymongo
