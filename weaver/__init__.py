@@ -34,7 +34,7 @@ class Manager:
                 db.weaver.parts,
                 elephant.local_.Engine(db.weaver.parts.queries))
 
-        self.e_recipes = EngineRecipes(
+        self.e_recipes = weaver.recipe.Engine(
                 self,
                 db.weaver.recipes,
                 weaver.recipe.query.Engine(db.weaver.recipes.queries))
@@ -93,15 +93,6 @@ class EngineDesigns(elephant.local_.Engine):
             return weaver.design.Assembly(self.manager, self, d)
         else:
             return weaver.design.Design(self.manager, self, d)
-
-class EngineRecipes(elephant.local_.Engine):
-    def __init__(self, manager, coll, e_queries):
-        super().__init__(coll, e_queries)
-        self.manager = manager
-        self.h = manager.h
-
-    def _factory(self, d):
-        return weaver.design.Recipe(self.manager, self, d)
 
 class EngineParts(elephant.local_.Engine):
     def __init__(self, manager, coll, e_queries):

@@ -31,15 +31,6 @@ class Design(elephant.local_.File):
 
             yield
 
-class Recipe(elephant.local_.File):
-    def __init__(self, manager, e, d):
-        super().__init__(e, d)
-
-    async def to_array(self):
-        d = dict(self.d)
-        d["_collection"] = "weaver recipes"
-        return d
-
 
 class Assembly(Design):
     def __init__(self, manager, e, d):
