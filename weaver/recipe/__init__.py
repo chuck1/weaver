@@ -20,20 +20,18 @@ class Engine(elephant.local_.Engine):
         
         # materials
 
-        yield {"$addFields": {"_material": "$materials"}}
-        yield {"$unwind": "$_material"}
-        yield {"$match": {"_material": {"$ne": None}}}
+        yield {"$unwind": "$materials"}
+        yield {"$match": {"materials": {"$ne": None}}}
         yield {"$lookup": {
                 "from": "weaver.designs.files", 
-                "let": {"material_id": "$_material.part._id"}, 
+                "let": {"material_id": "$materials.part._id"}, 
                 "pipeline": [{"$match": {"$expr": {"$eq": ["$_id", "$$material_id"]}}}], 
-                "as": "_material.design",
+                "as": "materials._design",
                 }}
-        yield {"$addFields": {"_material.design": {"$arrayElemAt": ["$_material.design", 0]}}}
+        yield {"$addFields": {"materials._design": {"$arrayElemAt": ["$materials._design", 0]}}}
         yield {"$group": {
                 "_id": "$_id",
-                "_materials": {"$push": "$_material"},
-                "materials": {"$first": "$materials"},
+                "materials": {"$push": "$materials"},
                 }}
 
 
