@@ -8,6 +8,7 @@ class Recipe(elephant.local_.File):
     async def update_temp_material(self, user, material):
         
         if '_design' in material: return material
+        if 'part' not in material: return material
 
         ref = material['part']['ref']
 
