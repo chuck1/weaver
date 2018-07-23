@@ -39,6 +39,11 @@ class Manager:
                 db.weaver.recipes,
                 weaver.recipe.query.Engine(db.weaver.recipes.queries))
 
+        self.e_recipeinstances = weaver.recipeinstance.Engine(
+                self,
+                db.weaver.recipeinstances,
+                weaver.recipeinstance.query.Engine(db.weaver.recipeinstances.queries))
+
     def get_inventory(self, part):
 
         res = self.e_parts.coll.files.aggregate([
