@@ -52,7 +52,8 @@ class Engine(elephant.local_.Engine):
         yield {"$group": {
                 "_id": "$_id",
                 "materials": {"$push": "$materials"},
-                "tags": {"$first": "$tags"},
+                "tags":  {"$first": "$tags"},
+                "steps": {"$first": "$steps"}
                 }}
 
     def _factory(self, d):
