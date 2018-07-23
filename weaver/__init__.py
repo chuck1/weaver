@@ -4,6 +4,8 @@ import elephant.local_
 import weaver.design
 import weaver.design.query
 import weaver.recipe.query
+import weaver.recipeinstance
+import weaver.recipeinstance.query
 
 class PurchaseLine:
     def __init__(self, part, q):
