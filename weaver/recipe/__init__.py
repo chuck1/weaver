@@ -5,6 +5,23 @@ class Recipe(elephant.local_.File):
     def __init__(self, manager, e, d):
         super().__init__(e, d)
 
+    async def update_temp_material(self, user, material):
+        
+        if '_design' in material: return material
+
+        ref = material['part']['ref']
+
+        d = await self.e.h.weaver.e_designs.find_one(user, ref, {'_id': material['part']['id']})
+
+        material['_design'] = await d.to_array()
+
+        return material
+
+    async def update_temp(self, user):
+        
+        if 'materials' in self.d:
+            self.d['materials'] = [await self.update_temp_material(user, m) for m in self.d['materials']]
+        
     async def to_array(self):
         d = dict(self.d)
         d["_collection"] = "weaver recipes"
@@ -20,8 +37,11 @@ class Engine(elephant.local_.Engine):
         
         # materials
 
-        yield {"$unwind": "$materials"}
-        yield {"$match": {"materials": {"$ne": None}}}
+        yield {"$unwind": {
+                "path": "$materials",
+                "preserveNullAndEmptyArrays": True,
+                }}
+        #yield {"$match": {"materials": {"$ne": None}}}
         yield {"$lookup": {
                 "from": "weaver.designs.files", 
                 "let": {"material_id": "$materials.part.id"}, 
@@ -34,8 +54,6 @@ class Engine(elephant.local_.Engine):
                 "materials": {"$push": "$materials"},
                 "tags": {"$first": "$tags"},
                 }}
-
-
 
     def _factory(self, d):
         return Recipe(self.manager, self, d)
