@@ -3,6 +3,7 @@ import weaver.util
 
 class Design(elephant.local_.File):
     def __init__(self, manager, e, d):
+        self.manager = manager
         super(Design, self).__init__(e, d)
 
     def visit_manager_produce(self, user, manager, m, q):
@@ -16,7 +17,7 @@ class Design(elephant.local_.File):
 
     def freeze(self):
         return {
-            '_id': self.d['_id'],
+            'id': self.d['_id'],
             'ref': self.d['_elephant']['refs'][self.d['_elephant']['ref']],
             }
 
@@ -25,11 +26,25 @@ class Design(elephant.local_.File):
         for m in self.d.get("materials", []):
             if m is None: continue
 
-            u_id = m["part"]["_id"]
+            u_id = m["part"]["id"]
                 
             u = self.manager.e_designs.get_content(m["part"]["ref"], {"_id": u_id})
 
             yield
+
+    async def produce(self, user, quantity):
+        d0 = {
+                'design': self.freeze(),
+                'quantity': quantity,
+                }
+
+        d1 = await self.manager.e_designinstances.put(
+                "master",
+                None,
+                d0,
+                user)
+
+        return d1
 
     async def to_array(self):
         d = dict(self.d)
@@ -84,4 +99,17 @@ class Assembly(Design):
         manager.receive(user, self.freeze(), q)
 
         return purchased
+
+class Engine(elephant.local_.Engine):
+    def __init__(self, manager, coll, e_queries):
+        super().__init__(coll, e_queries)
+        self.manager = manager
+        self.h = manager.h
+
+    def _factory(self, d):
+        if 'materials' in d:
+            raise Exception()
+            #return weaver.design.Assembly(self.manager, self, d)
+        return weaver.design.Design(self.manager, self, d)
+
 

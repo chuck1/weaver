@@ -1,5 +1,8 @@
+import logging
 
 import elephant.local_
+
+logger = logging.getLogger(__name__)
 
 class Recipe(elephant.local_.File):
     def __init__(self, manager, e, d):
@@ -9,6 +12,9 @@ class Recipe(elephant.local_.File):
         
         if '_design' in material: return material
         if 'part' not in material: return material
+        if 'id' not in material['part']:
+            logger.warning(f'invalid material: {material!r}')
+            return material
 
         ref = material['part']['ref']
 

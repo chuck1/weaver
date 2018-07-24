@@ -6,6 +6,8 @@ import weaver.design.query
 import weaver.recipe.query
 import weaver.recipeinstance
 import weaver.recipeinstance.query
+import weaver.designinstance
+import weaver.designinstance.query
 
 class PurchaseLine:
     def __init__(self, part, q):
@@ -26,15 +28,15 @@ class Manager:
     def __init__(self, db, h):
         self.h = h
 
-        self.e_designs = EngineDesigns(
+        self.e_designs = weaver.design.Engine(
                 self,
                 db.weaver.designs,
                 weaver.design.query.Engine(db.weaver.designs.queries))
 
-        self.e_parts = EngineParts(
+        self.e_designinstances = weaver.designinstance.Engine(
                 self,
-                db.weaver.parts,
-                elephant.local_.Engine(db.weaver.parts.queries))
+                db.weaver.designinstances,
+                weaver.designinstance.query.Engine(db.weaver.designinstances.queries))
 
         self.e_recipes = weaver.recipe.Engine(
                 self,
@@ -88,18 +90,6 @@ class Manager:
                 self.e_parts.put("master", part["_id"], part)
 
         raise Exception('insufficient part quantity')
-
-class EngineDesigns(elephant.local_.Engine):
-    def __init__(self, manager, coll, e_queries):
-        super().__init__(coll, e_queries)
-        self.manager = manager
-        self.h = manager.h
-
-    def _factory(self, d):
-        if 'materials' in d:
-            return weaver.design.Assembly(self.manager, self, d)
-        else:
-            return weaver.design.Design(self.manager, self, d)
 
 class EngineParts(elephant.local_.Engine):
     def __init__(self, manager, coll, e_queries):
