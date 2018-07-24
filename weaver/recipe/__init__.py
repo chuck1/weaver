@@ -28,7 +28,16 @@ class Recipe(elephant.local_.File):
         
         if 'materials' in self.d:
             self.d['materials'] = [await self.update_temp_material(user, m) for m in self.d['materials']]
+       
+
+    def quantity(self, d):
         
+        for m in self.d['materials']:
+            if m['part'] == d.freeze():
+                return m['quantity']
+
+        raise Exception('design not found in materials of recipe')
+ 
     async def to_array(self):
         d = dict(self.d)
         d["_collection"] = "weaver recipes"
