@@ -9,6 +9,18 @@ import weaver.recipeinstance.query
 import weaver.designinstance
 import weaver.designinstance.query
 
+"""
+Designinstances
+
+Designinstances are one of the following types
+
+* created to create demand
+* created as a material for a recipeinstance
+
+
+
+"""
+
 class PurchaseLine:
     def __init__(self, part, q):
         self.part = part

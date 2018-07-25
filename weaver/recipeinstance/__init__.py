@@ -1,5 +1,13 @@
+import enum
+import logging
 
 import elephant.local_
+
+logger = logging.getLogger(__name__)
+
+class Status(enum.Enum):
+    PLANNED = 0
+    COMPLETE = 1
 
 class RecipeInstance(elephant.local_.File):
     def __init__(self, manager, e, d):
@@ -16,6 +24,10 @@ class RecipeInstance(elephant.local_.File):
         in fact, this could be converted to global
         """
         return self.d['_id']
+
+    def valid(self):
+        assert 'status' in self.d
+        Status(self.d['status'])
 
     async def get_recipe(self, user):
 
@@ -37,6 +49,23 @@ class RecipeInstance(elephant.local_.File):
                	{'_id': self.d['designinstance']['id']})
         
         return d3
+
+    async def is_planned(self, user):
+        di = await self.get_designinstance(user)
+        if di:
+            if di.d.get('recipeinstance', None)['id'] == self.d['_id']:
+                return True
+            else:
+                logger.debug('RI type 1 reference doesnt match {0} != {1}'.format(
+                        di.d.get('recipeinstance', None)['id'],
+                        self.d['_id'],
+                        ))
+                return False
+        
+        if self.d['status'] == weaver.recipeinstance.Status.PLANNED:
+            return True
+
+        return False
 
     async def get_designinstances(self, user):
 
@@ -79,7 +108,7 @@ class RecipeInstance(elephant.local_.File):
 
         d = await di.get_design(user)
 
-        q0 = await di.quantity(user)
+        q0 = await di.quantity_demand(user)
 
         q1 = r.quantity(d)
   

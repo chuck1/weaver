@@ -1,5 +1,9 @@
+import logging
 
 import elephant.local_
+import weaver.recipeinstance
+
+logger = logging.getLogger(__name__)
 
 class DesignInstance(elephant.local_.File):
     def __init__(self, manager, e, d):
@@ -9,19 +13,51 @@ class DesignInstance(elephant.local_.File):
     async def update_temp(self, user):
         pass        
         
-    async def quantity(self, user):
+    async def quantity_demand(self, user):
         
         assert not (('quantity' in self.d) and ('recipeinstance_for' in self.d))
 
         if 'quantity' in self.d:
+            # type 0
+            logger.debug('DI demand type 0')
             return self.d['quantity']
 
+        # type 1
         ri = await self.get_recipeinstance_for(user)
+
+        if not (await ri.is_planned(user)):
+            logger.debug('DI demand type 1 not planned')
+            return 0
 
         r  = await ri.get_recipe(user)
 
         d  = await self.get_design(user)
 
+        q_r = await ri.quantity(user)
+
+        q_m = r.quantity(d)
+
+        q = q_r * q_m
+
+        return q        
+
+    async def quantity_inventory(self, user):
+        
+        assert not (('quantity' in self.d) and ('recipeinstance_for' in self.d))
+
+        if 'quantity' in self.d:
+            # type 0
+            return 0
+
+        # type 1
+        ri = await self.get_recipeinstance_for(user)
+
+        if ri.d.get('status', None) != weaver.recipeinstance.Status.COMPLETE:
+            return 0
+
+        r  = await ri.get_recipe(user)
+
+        d  = await self.get_design(user)
 
         q_r = await ri.quantity(user)
 
