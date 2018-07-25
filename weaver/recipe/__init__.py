@@ -51,13 +51,22 @@ class Engine(elephant.local_.Engine):
 
     def pipe0(self):
         
-        # materials
+        # tags
+        yield {'$lookup': {
+                'from': 'tags.files',
+                'let': {"tags0": "$tags"},
+                'pipeline': [
+                    {"$match": {"$expr": 
+                        {"$in": ["$_id", {"$ifNull": ["$$tags0",[]]}]}}},
+                    ],
+                'as': '_tags',
+                }}
 
+        # materials
         yield {"$unwind": {
                 "path": "$materials",
                 "preserveNullAndEmptyArrays": True,
                 }}
-        #yield {"$match": {"materials": {"$ne": None}}}
         yield {"$lookup": {
                 "from": "weaver.designs.files", 
                 "let": {"material_id": "$materials.design.id"}, 
@@ -69,8 +78,10 @@ class Engine(elephant.local_.Engine):
                 "_id": "$_id",
                 "materials": {"$push": "$materials"},
                 "tags":  {"$first": "$tags"},
+                "_tags":  {"$first": "$_tags"},
                 "steps": {"$first": "$steps"}
                 }}
+
 
     def _factory(self, d):
         return Recipe(self.manager, self, d)
