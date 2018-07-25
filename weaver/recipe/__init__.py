@@ -9,16 +9,16 @@ class Recipe(elephant.local_.File):
         super().__init__(e, d)
 
     async def update_temp_material(self, user, material):
-        
+        if not material: return material
         if '_design' in material: return material
-        if 'part' not in material: return material
-        if 'id' not in material['part']:
+        if 'design' not in material: return material
+        if 'id' not in material['design']:
             logger.warning(f'invalid material: {material!r}')
             return material
 
-        ref = material['part']['ref']
+        ref = material['design']['ref']
 
-        d = await self.e.h.weaver.e_designs.find_one(user, ref, {'_id': material['part']['id']})
+        d = await self.e.h.weaver.e_designs.find_one(user, ref, {'_id': material['design']['id']})
 
         material['_design'] = await d.to_array()
 
@@ -33,7 +33,7 @@ class Recipe(elephant.local_.File):
     def quantity(self, d):
         
         for m in self.d['materials']:
-            if m['part'] == d.freeze():
+            if m['design'] == d.freeze():
                 return m['quantity']
 
         raise Exception('design not found in materials of recipe')
@@ -60,7 +60,7 @@ class Engine(elephant.local_.Engine):
         #yield {"$match": {"materials": {"$ne": None}}}
         yield {"$lookup": {
                 "from": "weaver.designs.files", 
-                "let": {"material_id": "$materials.part.id"}, 
+                "let": {"material_id": "$materials.design.id"}, 
                 "pipeline": [{"$match": {"$expr": {"$eq": ["$_id", "$$material_id"]}}}], 
                 "as": "materials._design",
                 }}
