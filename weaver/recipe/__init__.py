@@ -29,14 +29,33 @@ class Recipe(elephant.local_.File):
         if 'materials' in self.d:
             self.d['materials'] = [await self.update_temp_material(user, m) for m in self.d['materials']]
        
+    def print_materials(self, p):
+        p(f'recipe materials:')
+        for m in self.d.get("materials", []):
+            if '_design' in m:
+                p('  ' + m['_design'].get('description',''))
+            else:
+                p('  ' + repr(m))
 
     def quantity(self, d):
         
+        logger.debug((
+                f'recipe get quantity for design '
+                f'{str(d.d["_id"])[-4:]} '
+                f'{str(d.d["_elephant"]["refs"][d.d["_elephant"]["ref"]])[-4:]}'))
+
         for m in self.d['materials']:
             if m['design'] == d.freeze():
                 return m['quantity']
 
         raise Exception('design not found in materials of recipe')
+
+        for m in self.d.get("materials", []):
+            logger.error(f'm: {m["design"]}')
+            logger.error(f'd: {d.freeze()}')
+
+        self.print_materials(logger.error)
+        logger.error(f'design: {d.d!r}')
  
     async def to_array(self):
         d = dict(self.d)

@@ -31,11 +31,18 @@ class RecipeInstance(elephant.local_.File):
 
     async def get_recipe(self, user):
 
+        logger.debug((
+                f'recipeinstance get recipe '
+                f'{str(self.d["recipe"]["id"])[-4:]} '
+                f'{str(self.d["recipe"]["ref"])[-4:]}'))
+
         d2 = await self.manager.e_recipes.find_one(
                 user,
                 self.d['recipe']['ref'],
                 {'_id': self.d['recipe']['id']},
                 )
+
+        #logger.debug(f'recipe {d2.d["_elephant"]!r}')
 
         return d2
 
@@ -67,7 +74,7 @@ class RecipeInstance(elephant.local_.File):
 
         return False
 
-    async def get_designinstances(self, user):
+    async def DEPget_designinstances(self, user):
 
         d2 = await self.get_recipe(user)
 
@@ -128,19 +135,31 @@ class Engine(elephant.local_.Engine):
 
     def pipe0(self):
         # recipe
-        yield {'$lookup': {
-                'from': 'weaver recipes',
-                'let': {'recipe_id': '$recipe'},
-                'pipeline': [
-                    {'$match': {'_id': '$$recipe_id'}},
-                    ],
-                'as': '_recipe',
+        yield {"$addFields": {"recipe_id": "$recipe.id"}}
+       
+        yield {"$lookup": {
+                "from": "weaver.recipes.files",
+                "let": {"recipe_id1": "$recipe_id"},
+                "pipeline": [
+                    {"$match": {"$expr": {"$eq": ["$_id","$$recipe_id1"]}}}],
+                "as": "_recipe"
                 }}
+
         yield {'$project': {
                 '_recipe': {'$arrayElemAt': ['$_recipe', 0]},
+                'recipe': 1,
                 }}
 
     def _factory(self, d):
         return RecipeInstance(self.manager, self, d)
+
+
+
+
+
+
+
+
+
 
 

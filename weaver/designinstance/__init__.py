@@ -82,13 +82,21 @@ class DesignInstance(elephant.local_.File):
     async def get_design(self, user):
         if 'design' not in self.d: return
 
+        logger.debug((
+                f'designinstance get design '
+                f'{str(self.d["design"]["id"])[-4:]} '
+                f'{str(self.d["design"]["ref"])[-4:]} '
+                ))
+
         d0 = await self.manager.e_designs.find_one(
                 user,
                 self.d['design']['ref'],
                 {"_id": self.d['design']['id']})
 
         assert d0 is not None
-  
+ 
+        assert d0.d["_elephant"]["refs"][d0.d["_elephant"]["ref"]] == self.d['design']['ref']
+ 
         return d0
 
     async def to_array(self):
