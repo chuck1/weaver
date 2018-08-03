@@ -1,3 +1,4 @@
+import bson
 import elephant.local_
 import weaver.util
 
@@ -16,10 +17,16 @@ class Design(elephant.local_.File):
             print(indent + f'consumed: {m["consumed"]}')
 
     def freeze(self):
-        return {
-            'id': self.d['_id'],
-            'ref': self.d['_elephant']['refs'][self.d['_elephant']['ref']],
-            }
+        if isinstance(self.d['_elephant']['ref'], bson.objectid.ObjectId):
+            return {
+                'id': self.d['_id'],
+                'ref': self.d['_elephant']['ref'],
+                }
+        else:
+            return {
+                'id': self.d['_id'],
+                'ref': self.d['_elephant']['refs'][self.d['_elephant']['ref']],
+                }
 
     def list_upstream(self, user, filt):
 

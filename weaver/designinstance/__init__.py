@@ -79,6 +79,8 @@ class DesignInstance(elephant.local_.File):
   
         return d0
 
+    
+
     async def get_design(self, user):
         if 'design' not in self.d: return
 
@@ -94,8 +96,12 @@ class DesignInstance(elephant.local_.File):
                 {"_id": self.d['design']['id']})
 
         assert d0 is not None
- 
-        assert d0.d["_elephant"]["refs"][d0.d["_elephant"]["ref"]] == self.d['design']['ref']
+
+        assert \
+                d0.d["_elephant"]["ref"] == self.d['design']['ref'] or \
+                d0.d["_elephant"]["refs"][d0.d["_elephant"]["ref"]] == self.d['design']['ref']
+         
+         
  
         return d0
 

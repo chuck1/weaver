@@ -42,7 +42,7 @@ class Recipe(elephant.local_.File):
         logger.debug((
                 f'recipe get quantity for design '
                 f'{str(d.d["_id"])[-4:]} '
-                f'{str(d.d["_elephant"]["refs"][d.d["_elephant"]["ref"]])[-4:]}'))
+                f'{str(d.d["_elephant"]["ref"])[-4:]}'))
 
         for m in self.d['materials']:
             if m['design'] == d.freeze():
