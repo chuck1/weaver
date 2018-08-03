@@ -1,6 +1,8 @@
 import argparse
 
 import elephant.local_
+
+import weaver.unit
 import weaver.design
 import weaver.design.query
 import weaver.recipe.query
@@ -59,6 +61,8 @@ class Manager:
                 self,
                 db.weaver.recipeinstances,
                 weaver.recipeinstance.query.Engine(db.weaver.recipeinstances.queries))
+
+        self.e_units = weaver.unit.Engine(self, db.weaver.units)
 
     def get_inventory(self, part):
 
