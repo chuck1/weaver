@@ -1,6 +1,10 @@
 import bson
+import logging
+
 import elephant.local_
 import weaver.util
+
+logger = logging.getLogger(__name__)
 
 class Design(elephant.local_.File):
     def __init__(self, manager, e, d):
@@ -115,7 +119,8 @@ class Engine(elephant.local_.Engine):
 
     def _factory(self, d):
         if 'materials' in d:
-            raise Exception()
+            if d['materials']:
+                logger.warning("design has materials field")
             #return weaver.design.Assembly(self.manager, self, d)
         return weaver.design.Design(self.manager, self, d)
 
