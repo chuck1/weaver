@@ -127,9 +127,9 @@ class Engine(elephant.local_.Engine):
                     ],
                 'as': '_design',
                 }}
-        #yield {'$project': {
-        #        '_design': {'$arrayElemAt': ['$_design', 0]},
-        #        }}
+        yield {'$addFields': {
+                '_design': {'$arrayElemAt': ['$_design', 0]},
+                }}
 
     def _factory(self, d):
         return DesignInstance(self.manager, self, d)
