@@ -9,13 +9,19 @@ class Status(enum.Enum):
     PLANNED = 0
     COMPLETE = 1
 
+
 class RecipeInstance(elephant.local_.File):
     def __init__(self, manager, e, d):
         super().__init__(e, d)
         self.manager = manager
 
     async def update_temp(self, user):
-        pass        
+
+        if "_temp" not in self.d: self.d["_temp"] = {}
+
+        if "cost" not in self.d["_temp"]:
+            self.d["_temp"]["cost"] = await self.cost(user)
+      
         
     def freeze(self):
         """
@@ -60,7 +66,7 @@ class RecipeInstance(elephant.local_.File):
     async def is_planned(self, user):
         di = await self.get_designinstance(user)
         if di:
-            if di.d.get('recipeinstance', None)['id'] == self.d['_id']:
+            if di.d.get('recipeinstance', None) == self.d['_id']:
                 return True
             else:
                 logger.debug('RI type 1 reference doesnt match {0} != {1}'.format(
@@ -74,7 +80,7 @@ class RecipeInstance(elephant.local_.File):
 
         return False
 
-    async def DEPget_designinstances(self, user):
+    async def get_designinstances(self, user):
 
         d2 = await self.get_recipe(user)
 
@@ -82,13 +88,13 @@ class RecipeInstance(elephant.local_.File):
         print(f'    recipe:         {d2!r}')
 
         for m in d2.d['materials']:
-            print(f'      {m["part"]!r}')
+            print(f'      {m["design"]!r}')
 
             d3 = await self.manager.e_designinstances.find_one(
                     user,
                     "master",
                     {
-                        'design': m['part'],
+                        'design': m['design'],
                         'recipeinstance_for': self.freeze(),
                     },
                     )
@@ -101,7 +107,7 @@ class RecipeInstance(elephant.local_.File):
                         "master",
                         None,
                         {
-                            'design': m['part'],
+                            'design': m['design'],
                             'recipeinstance_for': self.freeze(),
                         })
 
@@ -127,6 +133,22 @@ class RecipeInstance(elephant.local_.File):
         d["_collection"] = "weaver recipeinstances"
         return d
 
+    async def cost(self, user):
+        
+        #recipe = await self.get_recipe(user)
+
+        #for m in recipe.d["materials"]:
+
+        c = 0
+
+        async for di in self.get_designinstances(user):
+
+            c += await di.cost(user)
+            
+            #if m["quantity"]["num"] < 0: continue
+
+        return c
+
 class Engine(elephant.local_.Engine):
     def __init__(self, manager, coll, e_queries):
         super().__init__(coll, e_queries)
@@ -134,6 +156,9 @@ class Engine(elephant.local_.Engine):
         self.h = manager.h
 
     def pipe0(self):
+
+        yield from super().pipe0()
+
         # recipe
         yield {"$addFields": {"recipe_id": "$recipe.id"}}
        

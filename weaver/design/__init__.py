@@ -7,6 +7,12 @@ import weaver.util
 logger = logging.getLogger(__name__)
 
 class Design(elephant.local_.File):
+    """
+    fields
+
+    'unit' - default unit
+    """
+
     def __init__(self, manager, e, d):
         self.manager = manager
         super(Design, self).__init__(e, d)
@@ -46,7 +52,10 @@ class Design(elephant.local_.File):
     async def produce(self, user, quantity):
         d0 = {
                 'design': self.freeze(),
-                'quantity': quantity,
+                'quantity': {
+                    "num": quantity,
+                    "unit": self.d["unit"],
+                    }
                 }
 
         d1 = await self.manager.e_designinstances.put(
@@ -64,7 +73,7 @@ class Design(elephant.local_.File):
         return d
 
 
-class Assembly(Design):
+class DEPAssembly(Design):
     def __init__(self, manager, e, d):
         super(Assembly, self).__init__(manager, e, d)
 

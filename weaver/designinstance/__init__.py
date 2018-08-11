@@ -6,12 +6,19 @@ import weaver.recipeinstance
 logger = logging.getLogger(__name__)
 
 class DesignInstance(elephant.local_.File):
+    """
+    types identified by fields present
+
+    'recipeinstance_for' - this was created as one of the materials for a recipeinstance
+    'quantity'           - this was created manually to originate demand
+    'recipeinstance'     - a recipeinstance created to produce this
+    """
     def __init__(self, manager, e, d):
         super().__init__(e, d)
         self.manager = manager
 
     async def update_temp(self, user):
-        pass        
+        await super().update_temp(user)
         
     async def quantity_demand(self, user):
         
@@ -40,6 +47,19 @@ class DesignInstance(elephant.local_.File):
         q = q_r * q_m
 
         return q        
+
+    async def cost(self, user):
+
+        if 'recipeinstance' in self.d:
+            ri = await self.get_recipeinstance(user)
+            return await ri.cost(user)
+
+        d = await self.get_design(user)
+
+        if "cost" in d.d:
+            return d.d["cost"]
+
+        return 0
 
     async def quantity_inventory(self, user):
         
@@ -74,6 +94,18 @@ class DesignInstance(elephant.local_.File):
                 user,
                 "master",
                 {"_id": self.d['recipeinstance_for']})
+
+        assert d0 is not None
+  
+        return d0
+
+    async def get_recipeinstance(self, user):
+        if 'recipeinstance' not in self.d: return
+
+        d0 = await self.manager.e_recipeinstances.find_one(
+                user,
+                "master",
+                {"_id": self.d['recipeinstance']})
 
         assert d0 is not None
   
@@ -117,6 +149,9 @@ class Engine(elephant.local_.Engine):
         self.h = manager.h
 
     def pipe0(self):
+
+        yield from super().pipe0()
+
         # design
         yield {'$addFields': {'design_id': '$design.id'}}
         yield {'$lookup': {

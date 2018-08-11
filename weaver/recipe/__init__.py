@@ -2,6 +2,8 @@ import logging
 
 import elephant.local_
 
+import weaver.quantity
+
 logger = logging.getLogger(__name__)
 
 class Recipe(elephant.local_.File):
@@ -46,7 +48,7 @@ class Recipe(elephant.local_.File):
 
         for m in self.d['materials']:
             if m['design'] == d.freeze():
-                return m['quantity']
+                return weaver.quantity.Quantity(m['quantity'])
 
         raise Exception('design not found in materials of recipe')
 
@@ -69,6 +71,8 @@ class Engine(elephant.local_.Engine):
         self.h = manager.h
 
     def pipe0(self):
+
+        yield from super().pipe0()
         
         # tags
         yield {'$lookup': {
