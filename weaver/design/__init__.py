@@ -38,7 +38,7 @@ class Design(elephant.local_.File):
                 'ref': self.d['_elephant']['refs'][self.d['_elephant']['ref']],
                 }
 
-    def list_upstream(self, user, filt):
+    async def list_upstream(self, user, filt):
 
         for m in self.d.get("materials", []):
             if m is None: continue

@@ -28,6 +28,8 @@ class Recipe(elephant.local_.File):
 
     async def update_temp(self, user):
         
+        await super().update_temp(user)
+
         if 'materials' in self.d:
             self.d['materials'] = [await self.update_temp_material(user, m) for m in self.d['materials']]
        
