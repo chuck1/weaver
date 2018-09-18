@@ -9,8 +9,7 @@ class Status(enum.Enum):
     PLANNED = 0
     COMPLETE = 1
 
-
-class RecipeInstance(elephant.local_.File):
+class RecipeInstance(elephant.global_.File):
     def __init__(self, manager, e, d):
         super().__init__(e, d)
         self.manager = manager
@@ -58,8 +57,7 @@ class RecipeInstance(elephant.local_.File):
         """
         d3 = await self.manager.e_designinstances.find_one(
                 user,
-                "master",
-               	{'_id': self.d['designinstance']['id']})
+               	{'_id': self.d['designinstance']})
         
         return d3
 
@@ -70,7 +68,7 @@ class RecipeInstance(elephant.local_.File):
                 return True
             else:
                 logger.debug('RI type 1 reference doesnt match {0} != {1}'.format(
-                        di.d.get('recipeinstance', None)['id'],
+                        di.d.get('recipeinstance', None),
                         self.d['_id'],
                         ))
                 return False
@@ -92,7 +90,6 @@ class RecipeInstance(elephant.local_.File):
 
             d3 = await self.manager.e_designinstances.find_one(
                     user,
-                    "master",
                     {
                         'design': m['design'],
                         'recipeinstance_for': self.freeze(),
@@ -104,7 +101,6 @@ class RecipeInstance(elephant.local_.File):
 
                 d3 = await self.manager.e_designinstances.put(
                         user,
-                        "master",
                         None,
                         {
                             'design': m['design'],
@@ -149,9 +145,9 @@ class RecipeInstance(elephant.local_.File):
 
         return c
 
-class Engine(elephant.local_.Engine):
+class Engine(elephant.global_.Engine):
     def __init__(self, manager, coll, e_queries):
-        super().__init__(coll, e_queries)
+        super().__init__(coll, "master", e_queries)
         self.manager = manager
         self.h = manager.h
 

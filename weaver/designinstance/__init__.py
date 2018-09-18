@@ -5,7 +5,7 @@ import weaver.recipeinstance
 
 logger = logging.getLogger(__name__)
 
-class DesignInstance(elephant.local_.File):
+class DesignInstance(elephant.global_.File):
     """
     types identified by fields present
 
@@ -26,14 +26,15 @@ class DesignInstance(elephant.local_.File):
 
         if 'quantity' in self.d:
             # type 0
-            logger.debug('DI demand type 0')
-            return self.d['quantity']
+            logger.debug(f'DI demand type 0. q = {self.d["quantity"]}')
+            return weaver.quantity.Quantity(self.d['quantity'])
 
         # type 1
         ri = await self.get_recipeinstance_for(user)
 
         if not (await ri.is_planned(user)):
             logger.debug('DI demand type 1 not planned')
+            print('DI demand type 1 not planned')
             return 0
 
         r  = await ri.get_recipe(user)
@@ -92,7 +93,6 @@ class DesignInstance(elephant.local_.File):
 
         d0 = await self.manager.e_recipeinstances.find_one(
                 user,
-                "master",
                 {"_id": self.d['recipeinstance_for']})
 
         assert d0 is not None
@@ -104,7 +104,6 @@ class DesignInstance(elephant.local_.File):
 
         d0 = await self.manager.e_recipeinstances.find_one(
                 user,
-                "master",
                 {"_id": self.d['recipeinstance']})
 
         assert d0 is not None
@@ -142,9 +141,9 @@ class DesignInstance(elephant.local_.File):
         d["_collection"] = "weaver designinstances"
         return d
 
-class Engine(elephant.local_.Engine):
+class Engine(elephant.global_.Engine):
     def __init__(self, manager, coll, e_queries):
-        super().__init__(coll, e_queries)
+        super().__init__(coll, "master", e_queries)
         self.manager = manager
         self.h = manager.h
 

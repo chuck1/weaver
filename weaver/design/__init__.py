@@ -50,17 +50,18 @@ class Design(elephant.local_.File):
             yield
 
     async def produce(self, user, quantity):
+        if not isinstance(quantity, (int, float, dict)):
+            raise TypeError()
+
+        weaver.quantity.Quantity(quantity)
+
         d0 = {
                 'design': self.freeze(),
-                'quantity': {
-                    "num": quantity,
-                    "unit": self.d["unit"],
-                    }
+                'quantity': quantity,
                 }
 
         d1 = await self.manager.e_designinstances.put(
                 user,
-                "master",
                 None,
                 d0,
                 )
