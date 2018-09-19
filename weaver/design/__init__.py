@@ -11,6 +11,7 @@ class Design(elephant.local_.File):
     fields
 
     'unit' - default unit
+    'conversions' - conversions between units of different fundamental measurement
     """
 
     def __init__(self, manager, e, d):
@@ -48,6 +49,42 @@ class Design(elephant.local_.File):
             u = self.manager.e_designs.get_content(m["part"]["ref"], {"_id": u_id})
 
             yield
+
+    async def conversion(self, u0, u1):
+        """
+        conversion factor from u0 to u1
+        x (u1) = y (u10 * c (u1 / u0)
+        """
+        print("conversion")
+        print(f"{u0!r}")
+        print(f"{u1!r}")
+        r0 = u0.reduce()
+        r1 = u1.reduce()
+        print(f"{u0!r}")
+        print(f"{u1!r}")
+        c0 = [r0, r1]
+        c1 = [r1, r0]
+
+        if r0 == r1:
+            return weaver.quantity.Quantity({"num": 1, "unit": None})
+
+        print("looking for")
+        print(f"    {c0}")
+        for c, y in self.d.get("conversions", []):
+            r = [c[0].reduce(), c[1].reduce()]
+            print(f"try {r!r}")
+            if r == c0:
+                return weaver.quantity.Quantity({"num": y, "unit": weaver.quantity.ComposedUnit([u1], [u0])})
+
+        print("looking for")
+        print(f"    {c1}")
+        for c, y in self.d.get("conversions", []):
+            r = [c[0].reduce(), c[1].reduce()]
+            print(f"try {r!r} {r == c1}")
+            if r == c1:
+                return weaver.quantity.Quantity({"num": 1/y, "unit": weaver.quantity.ComposedUnit([u1], [u0])})
+
+        raise Exception("no conversion")
 
     async def produce(self, user, quantity):
         if not isinstance(quantity, (int, float, dict)):
@@ -128,11 +165,11 @@ class Engine(elephant.local_.Engine):
         self.manager = manager
         self.h = manager.h
 
-    def _factory(self, d):
+    async def _factory(self, d):
         if 'materials' in d:
             if d['materials']:
                 logger.warning("design has materials field")
-            #return weaver.design.Assembly(self.manager, self, d)
+        d = await self.h.decode(d)
         return weaver.design.Design(self.manager, self, d)
 
 

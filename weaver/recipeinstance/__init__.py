@@ -121,7 +121,13 @@ class RecipeInstance(elephant.global_.File):
 
         q1 = r.quantity(d)
   
-        return -q0 / q1
+        q2 = -q0 / q1 * (await d.conversion(q0.unit, q1.unit))
+
+        if not (q2.unit.reduce() == [[], []]):
+            logger.error(repr(q2.unit.reduce()))
+            raise Exception("recipeinstance quantity should have no units")
+
+        return q2
         
 
     async def to_array(self):
@@ -151,9 +157,9 @@ class Engine(elephant.global_.Engine):
         self.manager = manager
         self.h = manager.h
 
-    def pipe0(self):
+    def pipe0(self, user):
 
-        yield from super().pipe0()
+        yield from super().pipe0(user)
 
         # recipe
         yield {"$addFields": {"recipe_id": "$recipe.id"}}
@@ -171,7 +177,7 @@ class Engine(elephant.global_.Engine):
                 'recipe': 1,
                 }}
 
-    def _factory(self, d):
+    async def _factory(self, d):
         return RecipeInstance(self.manager, self, d)
 
 

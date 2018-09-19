@@ -7,6 +7,6 @@ class Query(elephant.local_.File):
         return d
 
 class Engine(elephant.local_.Engine):
-    def _factory(self, d):
+    async def _factory(self, d):
         return Query(self, d)
 

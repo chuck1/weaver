@@ -35,10 +35,28 @@ def _reduce(N, D):
         D.remove(n)
     return N, D
 
+def unit_eq(x, y):
+    if (x is None) and (y is None): return True
+    if x is None:
+        if y.reduce() == [[], []]: return True
+        return False
+    if y is None:
+        if x.reduce() == [[], []]: return True
+        return False
+    return x.reduce() ==  y.reduce()
+
+#def simplify(u):
+#    if isinstance(u, ComposedUnit):
+        
+
 class BaseUnit: pass
 
 class ComposedUnit(BaseUnit):
     def __init__(self, numer=[], denom=[]):
+        numer = [u for u in numer if u is not None]
+        denom = [u for u in denom if u is not None]
+        for u in numer: assert isinstance(u, BaseUnit)
+        for u in denom: assert isinstance(u, BaseUnit)
         assert isinstance(numer, list)
         assert isinstance(denom, list)
         self.numer, self.denom = _reduce(list(_numer(numer, denom)), list(_denom(numer, denom)))
@@ -49,12 +67,15 @@ class ComposedUnit(BaseUnit):
     def reduce(self):
         N = list(self.numer)
         D = list(self.denom)
+        print("reduce")
+        print("N", N)
+        print("D", D)
         while True:
             n = _find_match(N, D)
             if not n: break
             N.remove(n)
             D.remove(n)
-        return tuple(sorted(n for n in N)), tuple(sorted(d for d in D))
+        return [list(sorted(n for n in N)), list(sorted(d for d in D))]
 
 class Unit(BaseUnit):
     def __init__(self, _id):
@@ -62,7 +83,7 @@ class Unit(BaseUnit):
         self._id = _id
     
     def reduce(self):
-        return (self,), tuple()
+        return [[self], []]
 
     def __lt__(self, other):
         return self._id < other._id
@@ -70,6 +91,12 @@ class Unit(BaseUnit):
     def __eq__(self, other):
         if not isinstance(other, Unit): return False
         return self._id == other._id
+
+    def __repr__(self):
+        return f"Unit({str(self._id)[-8:]})"
+
+    def __encode__(self):
+        return {"Unit": (self._id,)}
 
 class Quantity:
     def __init__(self, num_or_dict):
@@ -110,7 +137,9 @@ class Quantity:
         return Quantity({"num": -self.num, "unit": self.unit})
 
     def __truediv__(self, other):
-        assert isinstance(other, Quantity)
+        assert isinstance(other, (int, float, Quantity))
+        if isinstance(other, (int, float)):
+            return Quantity({"num": self.num / other, "unit": self.unit})
         return Quantity({"num": self.num / other.num, "unit": ComposedUnit([self.unit], [other.unit])})
 
     def __mul__(self, other):

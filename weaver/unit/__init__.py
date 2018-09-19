@@ -12,7 +12,7 @@ class Engine(elephant.global_.Engine):
         self.manager = manager
         self.h = manager.h
 
-    def _factory(self, d):
+    async def _factory(self, d):
         return Unit(self.manager, self, d)
 
 

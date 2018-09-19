@@ -1,3 +1,4 @@
+import pprint
 import logging
 
 import elephant.local_
@@ -24,10 +25,23 @@ class DesignInstance(elephant.global_.File):
         
         assert not (('quantity' in self.d) and ('recipeinstance_for' in self.d))
 
+        d  = await self.get_design(user)
+        u0 = d.d.get("unit", None)
+        assert (u0 is None) or isinstance(u0, weaver.quantity.BaseUnit)
+
         if 'quantity' in self.d:
             # type 0
             logger.debug(f'DI demand type 0. q = {self.d["quantity"]}')
-            return weaver.quantity.Quantity(self.d['quantity'])
+
+            q = weaver.quantity.Quantity(self.d['quantity'])
+            q = q * (await d.conversion(q.unit, u0))
+
+            print("assert equal")
+            print(u0)
+            print(q.unit)
+
+            assert weaver.quantity.unit_eq(u0, q.unit)
+            return q
 
         # type 1
         ri = await self.get_recipeinstance_for(user)
@@ -39,13 +53,23 @@ class DesignInstance(elephant.global_.File):
 
         r  = await ri.get_recipe(user)
 
-        d  = await self.get_design(user)
 
         q_r = await ri.quantity(user)
 
         q_m = r.quantity(d)
 
         q = q_r * q_m
+
+        u1 = q.unit
+
+        pprint.pprint(d.d)
+
+        print("u0", u0)
+        print("u1", u1)
+
+        assert (u1 is None) or isinstance(u1, weaver.quantity.BaseUnit)
+
+        assert weaver.quantity.unit_eq(u0, u1)
 
         return q        
 
@@ -110,8 +134,6 @@ class DesignInstance(elephant.global_.File):
   
         return d0
 
-    
-
     async def get_design(self, user):
         if 'design' not in self.d: return
 
@@ -147,9 +169,9 @@ class Engine(elephant.global_.Engine):
         self.manager = manager
         self.h = manager.h
 
-    def pipe0(self):
+    def pipe0(self, user):
 
-        yield from super().pipe0()
+        yield from super().pipe0(user)
 
         # design
         yield {'$addFields': {'design_id': '$design.id'}}
@@ -165,7 +187,7 @@ class Engine(elephant.global_.Engine):
                 '_design': {'$arrayElemAt': ['$_design', 0]},
                 }}
 
-    def _factory(self, d):
+    async def _factory(self, d):
         return DesignInstance(self.manager, self, d)
 
 

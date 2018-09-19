@@ -72,9 +72,9 @@ class Engine(elephant.local_.Engine):
         self.manager = manager
         self.h = manager.h
 
-    def pipe0(self):
+    def pipe0(self, user):
 
-        yield from super().pipe0()
+        yield from super().pipe0(user)
         
         # tags
         yield {'$lookup': {
@@ -108,7 +108,7 @@ class Engine(elephant.local_.Engine):
                 }}
 
 
-    def _factory(self, d):
+    async def _factory(self, d):
         return Recipe(self.manager, self, d)
 
 
