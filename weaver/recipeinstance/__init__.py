@@ -15,12 +15,9 @@ class RecipeInstance(elephant.global_.File):
         self.manager = manager
 
     async def update_temp(self, user):
+        await super().update_temp(user)
 
-        if "_temp" not in self.d: self.d["_temp"] = {}
-
-        if "cost" not in self.d["_temp"]:
-            self.d["_temp"]["cost"] = await self.cost(user)
-      
+        self.d["_temp"]["cost"] = await self.cost(user)
         
     def freeze(self):
         """
