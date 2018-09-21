@@ -26,12 +26,18 @@ class Recipe(elephant.local_.File):
 
         return material
 
+    async def temp_materials(self, user):
+
+        for m in self.d['materials']:
+
+            yield await self.update_temp_material(user, m)
+
     async def update_temp(self, user):
         
         await super().update_temp(user)
 
         if 'materials' in self.d:
-            self.d['materials'] = [await self.update_temp_material(user, m) for m in self.d['materials']]
+            self.d['materials'] = [_ async for _ in self.temp_materials(user)]
        
     def print_materials(self, p):
         p(f'recipe materials:')
@@ -86,6 +92,8 @@ class Engine(elephant.local_.Engine):
                     ],
                 'as': '_tags',
                 }}
+
+        return
 
         # materials
         yield {"$unwind": {
