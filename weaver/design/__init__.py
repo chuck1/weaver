@@ -40,15 +40,11 @@ class Design(elephant.local_.File):
                 }
 
     async def list_upstream(self, user, filt):
-
-        for m in self.d.get("materials", []):
-            if m is None: continue
-
-            u_id = m["part"]["id"]
-                
-            u = self.manager.e_designs.get_content(m["part"]["ref"], {"_id": u_id})
-
-            yield
+ 
+        async for r in self.e.h.weaver.e_recipes.find(user, {"materials.design.id": self.d["_id"]}):
+            q = r.quantity(self)
+            if q.num > 0: continue
+            yield r
 
     async def conversion(self, u0, u1):
         """
@@ -110,6 +106,11 @@ class Design(elephant.local_.File):
         d["_collection"] = "weaver designs"
         return d
 
+    async def cost(self):
+        # yield the cost of all possible options for producing this design
+        
+        return
+        yield
 
 class DEPAssembly(Design):
     def __init__(self, manager, e, d):

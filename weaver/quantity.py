@@ -146,3 +146,11 @@ class Quantity:
         assert isinstance(other, Quantity)
         return Quantity({"num": self.num * other.num, "unit": ComposedUnit([self.unit, other.unit])})
 
+    async def to_array(self):
+        return {'num': self.num, 'unit': self.unit}
+
+    def __encode__(self):
+        return {'num': self.num, 'unit': self.unit}
+
+
+

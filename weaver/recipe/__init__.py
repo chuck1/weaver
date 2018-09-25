@@ -22,9 +22,16 @@ class Recipe(elephant.local_.File):
 
         d = await self.e.h.weaver.e_designs.find_one(user, ref, {'_id': material['design']['id']})
 
-        material['_design'] = await d.to_array()
+        m = dict(material)
 
-        return material
+        m['design'] = d
+
+        if "quantity" in m:
+            if not isinstance(m['quantity'], weaver.quantity.Quantity):
+                m['quantity'] = weaver.quantity.Quantity(m['quantity'])
+
+        return m
+
 
     async def temp_materials(self, user):
 
@@ -32,12 +39,17 @@ class Recipe(elephant.local_.File):
 
             yield await self.update_temp_material(user, m)
 
+    async def check(self):
+        for m in self.d.get('materials', []):
+            if 'quantity' not in m:
+                m['quantity'] = weaver.quantity.Quantity(0)
+
     async def update_temp(self, user):
         
         await super().update_temp(user)
 
         if 'materials' in self.d:
-            self.d['materials'] = [_ async for _ in self.temp_materials(user)]
+            self.d['_temp']['materials'] = [_ async for _ in self.temp_materials(user)]
        
     def print_materials(self, p):
         p(f'recipe materials:')
@@ -46,6 +58,23 @@ class Recipe(elephant.local_.File):
                 p('  ' + m['_design'].get('description',''))
             else:
                 p('  ' + repr(m))
+
+    async def temp(self, user):
+        if "_temp" not in self.d: await self.update_temp(user)
+        return self.d["_temp"]
+
+    async def list_upstream(self, user, query=None):
+        for m in (await self.temp(user)).get("materials", []):
+            if "quantity" in m:
+                if m["quantity"].num < 0:
+                    logger.info(f'upstream: skip material {m["design"]!r} with quantity {m["quantity"]!r}')
+                    continue
+            yield m["design"]
+
+    async def list_downstream(self, user, query=None):
+        for m in (await self.temp(user)).get("materials", []):
+            if m["quantity"].num > 0: continue
+            yield m["design"]
 
     def quantity(self, d):
         
@@ -56,6 +85,10 @@ class Recipe(elephant.local_.File):
 
         for m in self.d['materials']:
             if m['design'] == d.freeze():
+                  
+                if 'quantity' not in m:
+                    return weaver.quantity.Quantity(0)
+ 
                 return weaver.quantity.Quantity(m['quantity'])
 
         raise Exception('design not found in materials of recipe')
@@ -70,6 +103,17 @@ class Recipe(elephant.local_.File):
     async def to_array(self):
         d = dict(self.d)
         d["_collection"] = "weaver recipes"
+
+        async def _(l):
+            for m in l:
+                m["design"] = await m["design"].to_array()
+                if "quantity" in m:
+                    m["quantity"] = await m["quantity"].to_array()
+                yield m
+
+        if "materials" in d.get("_temp", {}):
+            d["_temp"]["materials"] = [i async for i in _(d["_temp"]["materials"])]
+
         return d
 
 class Engine(elephant.local_.Engine):
