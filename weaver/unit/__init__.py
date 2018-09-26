@@ -1,10 +1,10 @@
 
 import elephant.global_
 
-
 class Unit(elephant.global_.File):
     def __init__(self, manager, e, d):
         super().__init__(e, d)
+        self.d["_collection"] = "weaver units"
 
 class Engine(elephant.global_.Engine):
     def __init__(self, manager, coll):

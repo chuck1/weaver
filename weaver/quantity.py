@@ -1,5 +1,7 @@
 import bson
 
+import elephant.util
+
 def _numer(N, D):
     for u in N:
         if isinstance(u, ComposedUnit):
@@ -95,21 +97,21 @@ class Unit(BaseUnit):
     def __repr__(self):
         return f"Unit({str(self._id)[-8:]})"
 
-    def __encode__(self):
-        return {"Unit": (self._id,)}
+    async def __encode__(self):
+        return {"Unit": [self._id]}
 
 class Quantity:
     def __init__(self, num_or_dict):
         if isinstance(num_or_dict, dict):
             num_or_dict = dict(num_or_dict)
             assert "num" in num_or_dict
-            assert "unit" in num_or_dict
+            #assert "unit" in num_or_dict
             assert isinstance(num_or_dict["num"], (int, float))
 
             self.num = num_or_dict["num"]
 
-            if (num_or_dict["unit"] is None) or isinstance(num_or_dict["unit"], BaseUnit):
-                self.unit = num_or_dict["unit"]
+            if (num_or_dict.get("unit") is None) or isinstance(num_or_dict["unit"], BaseUnit):
+                self.unit = num_or_dict.get("unit")
             else:
                 self.unit = Unit(num_or_dict["unit"])
 
@@ -146,11 +148,9 @@ class Quantity:
         assert isinstance(other, Quantity)
         return Quantity({"num": self.num * other.num, "unit": ComposedUnit([self.unit, other.unit])})
 
-    async def to_array(self):
-        return {'num': self.num, 'unit': self.unit}
-
-    def __encode__(self):
-        return {'num': self.num, 'unit': self.unit}
+    async def __encode__(self):
+        args = await elephant.util.encode([{'num': self.num, 'unit': self.unit}])
+        return {'Quantity': args}
 
 
 

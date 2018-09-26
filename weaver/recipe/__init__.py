@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 class Recipe(elephant.local_.File):
     def __init__(self, manager, e, d):
         super().__init__(e, d)
+        self.d["_collection"] = "weaver recipes"
 
     async def update_temp_material(self, user, material):
         if not material: return material
@@ -100,21 +101,6 @@ class Recipe(elephant.local_.File):
         self.print_materials(logger.error)
         logger.error(f'design: {d.d!r}')
  
-    async def to_array(self):
-        d = dict(self.d)
-        d["_collection"] = "weaver recipes"
-
-        async def _(l):
-            for m in l:
-                m["design"] = await m["design"].to_array()
-                if "quantity" in m:
-                    m["quantity"] = await m["quantity"].to_array()
-                yield m
-
-        if "materials" in d.get("_temp", {}):
-            d["_temp"]["materials"] = [i async for i in _(d["_temp"]["materials"])]
-
-        return d
 
 class Engine(elephant.local_.Engine):
     def __init__(self, manager, coll, e_queries):

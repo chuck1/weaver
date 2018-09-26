@@ -17,6 +17,7 @@ class Design(elephant.local_.File):
     def __init__(self, manager, e, d):
         self.manager = manager
         super(Design, self).__init__(e, d)
+        self.d["_collection"] = "weaver designs"
 
     def visit_manager_produce(self, user, manager, m, q):
         return manager.purchase(user, m, q)
@@ -101,10 +102,6 @@ class Design(elephant.local_.File):
 
         return d1
 
-    async def to_array(self):
-        d = dict(self.d)
-        d["_collection"] = "weaver designs"
-        return d
 
     async def cost(self):
         # yield the cost of all possible options for producing this design
