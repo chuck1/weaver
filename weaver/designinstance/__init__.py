@@ -115,7 +115,7 @@ class DesignInstance(elephant.global_.File):
     async def get_recipeinstance_for(self, user):
         if 'recipeinstance_for' not in self.d: return
 
-        d0 = await self.manager.e_recipeinstances.find_one(
+        d0 = await self.e.manager.e_recipeinstances.find_one(
                 user,
                 {"_id": self.d['recipeinstance_for']})
 
@@ -126,7 +126,7 @@ class DesignInstance(elephant.global_.File):
     async def get_recipeinstance(self, user):
         if 'recipeinstance' not in self.d: return
 
-        d0 = await self.manager.e_recipeinstances.find_one(
+        d0 = await self.e.manager.e_recipeinstances.find_one(
                 user,
                 {"_id": self.d['recipeinstance']})
 
@@ -143,7 +143,7 @@ class DesignInstance(elephant.global_.File):
                 f'{str(self.d["design"]["ref"])[-4:]} '
                 ))
 
-        d0 = await self.manager.e_designs.find_one(
+        d0 = await self.e.manager.e_designs.find_one(
                 user,
                 self.d['design']['ref'],
                 {"_id": self.d['design']['id']})

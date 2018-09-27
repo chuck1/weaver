@@ -11,9 +11,8 @@ class Status(enum.Enum):
     COMPLETE = 1
 
 class RecipeInstance(elephant.global_.File):
-    def __init__(self, manager, e, d):
-        super().__init__(e, d)
-        self.manager = manager
+    def __init__(self, e, d, _d):
+        super().__init__(e, d, _d)
 
     async def update_temp(self, user):
         await super().update_temp(user)
@@ -39,7 +38,7 @@ class RecipeInstance(elephant.global_.File):
                 f'{str(self.d["recipe"]["id"])[-4:]} '
                 f'{str(self.d["recipe"]["ref"])[-4:]}'))
 
-        d2 = await self.manager.e_recipes.find_one(
+        d2 = await self.e.manager.e_recipes.find_one(
                 user,
                 self.d['recipe']['ref'],
                 {'_id': self.d['recipe']['id']},
@@ -53,7 +52,7 @@ class RecipeInstance(elephant.global_.File):
         """
         get the designinstance that this was created to produce
         """
-        d3 = await self.manager.e_designinstances.find_one(
+        d3 = await self.e.manager.e_designinstances.find_one(
                 user,
                	{'_id': self.d['designinstance']})
         
@@ -84,12 +83,12 @@ class RecipeInstance(elephant.global_.File):
         print(f'    recipe:         {d2!r}')
 
         for m in d2.d['materials']:
-            print(f'      {m["design"]!r}')
+            logger.info(f'      {m.design!r}')
 
-            d3 = await self.manager.e_designinstances.find_one(
+            d3 = await self.e.manager.e_designinstances.find_one(
                     user,
                     {
-                        'design': m['design'],
+                        'design': m.design,
                         'recipeinstance_for': self.freeze(),
                     },
                     )
@@ -97,11 +96,11 @@ class RecipeInstance(elephant.global_.File):
             if d3 is None:
                 print('creating missing designinstance!!!')
 
-                d3 = await self.manager.e_designinstances.put(
+                d3 = await self.e.manager.e_designinstances.put(
                         user,
                         None,
                         {
-                            'design': m['design'],
+                            'design': m.design,
                             'recipeinstance_for': self.freeze(),
                         })
 

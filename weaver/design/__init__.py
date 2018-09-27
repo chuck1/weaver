@@ -99,7 +99,7 @@ class Design(elephant.local_.File):
                 'quantity': quantity,
                 }
 
-        d1 = await self.manager.e_designinstances.put(
+        d1 = await self.e.manager.e_designinstances.put(
                 user,
                 None,
                 d0,
