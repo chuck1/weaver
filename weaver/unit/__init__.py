@@ -1,18 +1,26 @@
 
 import elephant.global_
+import weaver.engine
 
 class Unit(elephant.global_.File):
-    def __init__(self, manager, e, d):
-        super().__init__(e, d)
+    def __init__(self, e, d, _d):
+        super().__init__(e, d, _d)
         self.d["_collection"] = "weaver units"
 
-class Engine(elephant.global_.Engine):
-    def __init__(self, manager, coll):
-        super().__init__(coll, "weaver units", elephant.local_.Engine(coll.queries))
-        self.manager = manager
-        self.h = manager.h
+class Query(elephant.local_.File):
+    def __init__(self, e, d, _d):
+        super().__init__(e, d, _d)
+        self.d["_collection"] = "weaver units queries"
 
-    async def _factory(self, d):
-        return Unit(self.manager, self, d)
+class EngineQuery(weaver.engine.EngineLocal):
+    def __init__(self, manager, coll):
+        super().__init__(manager, coll)
+        self._doc_class = Query
+
+class Engine(weaver.engine.EngineGlobal):
+
+    def __init__(self, manager, coll):
+        super().__init__(manager, coll, "weaver units", EngineQuery(manager, coll.queries))
+        self._doc_class = Unit
 
 

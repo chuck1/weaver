@@ -14,9 +14,8 @@ class Design(elephant.local_.File):
     'conversions' - conversions between units of different fundamental measurement
     """
 
-    def __init__(self, manager, e, d):
-        self.manager = manager
-        super(Design, self).__init__(e, d)
+    def __init__(self, e, d, _d):
+        super().__init__(e, d, _d)
         self.d["_collection"] = "weaver designs"
 
     def visit_manager_produce(self, user, manager, m, q):
@@ -39,6 +38,12 @@ class Design(elephant.local_.File):
                 'id': self.d['_id'],
                 'ref': self.d['_elephant']['refs'][self.d['_elephant']['ref']],
                 }
+
+    async def list_recipes_negative(self, user):
+
+        async for r in self.e.h.weaver.e_recipes.find(user, {"materials.Material.design.id": self.d["_id"]}):
+            q = r.quantity(self)
+            if q.num < 0: yield r
 
     async def list_upstream(self, user, filt):
  
@@ -103,11 +108,32 @@ class Design(elephant.local_.File):
         return d1
 
 
-    async def cost(self):
+    async def cost(self, user, q):
         # yield the cost of all possible options for producing this design
         
-        return
-        yield
+        if not weaver.quantity.unit_eq(self.d.get("unit"), q.unit):
+
+            try:
+                c = await self.conversion(q.unit, self.d.get("unit"))
+            except:
+                raise Exception(f'failed to convert {q.unit} to {self.d.get("unit")} for design {self.d.get("description")}')
+                raise
+
+            q = q * c
+
+            if not weaver.quantity.unit_eq(self.d.get("unit"), q.unit):
+                raise Exception(f'units must be equal {self.d.get("unit")} {q.unit}')
+            #logger.error(f'units must be equal {self.d.get("unit")} {q.unit}')
+            #return
+
+        async for r in self.list_recipes_negative(user):
+            q1 = r.quantity(self)
+            q2 = q / q1
+            async for _ in r.cost(user, q2): yield _
+
+        if 'cost' in self.d:
+            assert isinstance(self.d["cost"], (int, float))
+            yield self.d["cost"]
 
 class DEPAssembly(Design):
     def __init__(self, manager, e, d):
@@ -157,17 +183,13 @@ class DEPAssembly(Design):
 
         return purchased
 
-class Engine(elephant.local_.Engine):
+class Engine(weaver.engine.EngineLocal):
+
+    _doc_class = Design
+
     def __init__(self, manager, coll, e_queries):
-        super().__init__(coll, e_queries)
+        super().__init__(manager, coll, e_queries)
         self.manager = manager
         self.h = manager.h
-
-    async def _factory(self, d):
-        if 'materials' in d:
-            if d['materials']:
-                logger.warning("design has materials field")
-        d = await self.h.decode(d)
-        return weaver.design.Design(self.manager, self, d)
 
 

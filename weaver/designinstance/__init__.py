@@ -14,9 +14,9 @@ class DesignInstance(elephant.global_.File):
     'quantity'           - this was created manually to originate demand
     'recipeinstance'     - a recipeinstance created to produce this
     """
-    def __init__(self, manager, e, d):
-        super().__init__(e, d)
-        self.manager = manager
+    def __init__(self, e, d, _d):
+        super().__init__(e, d, _d)
+        self.d['_collection'] = 'weaver designinstances'
 
     async def update_temp(self, user):
         await super().update_temp(user)
@@ -160,14 +160,12 @@ class DesignInstance(elephant.global_.File):
 
     async def to_array(self):
         d = dict(self.d)
-        d["_collection"] = "weaver designinstances"
         return d
 
-class Engine(elephant.global_.Engine):
+class Engine(weaver.engine.EngineGlobal):
     def __init__(self, manager, coll, e_queries):
-        super().__init__(coll, "master", e_queries)
-        self.manager = manager
-        self.h = manager.h
+        super().__init__(manager, coll, "master", e_queries)
+        self._doc_class = DesignInstance
 
     def pipe0(self, user):
 
@@ -187,7 +185,5 @@ class Engine(elephant.global_.Engine):
                 '_design': {'$arrayElemAt': ['$_design', 0]},
                 }}
 
-    async def _factory(self, d):
-        return DesignInstance(self.manager, self, d)
 
 

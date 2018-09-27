@@ -45,22 +45,22 @@ class Manager:
         self.e_designs = weaver.design.Engine(
                 self,
                 db.weaver.designs,
-                weaver.design.query.Engine(db.weaver.designs.queries))
+                weaver.design.query.Engine(self, db.weaver.designs.queries))
 
         self.e_designinstances = weaver.designinstance.Engine(
                 self,
                 db.weaver.designinstances,
-                weaver.designinstance.query.Engine(db.weaver.designinstances.queries))
+                weaver.designinstance.query.Engine(self, db.weaver.designinstances.queries))
 
         self.e_recipes = weaver.recipe.Engine(
                 self,
                 db.weaver.recipes,
-                weaver.recipe.query.Engine(db.weaver.recipes.queries))
+                weaver.recipe.query.Engine(self, db.weaver.recipes.queries))
 
         self.e_recipeinstances = weaver.recipeinstance.Engine(
                 self,
                 db.weaver.recipeinstances,
-                weaver.recipeinstance.query.Engine(db.weaver.recipeinstances.queries))
+                weaver.recipeinstance.query.Engine(self, db.weaver.recipeinstances.queries))
 
         self.e_units = weaver.unit.Engine(self, db.weaver.units)
 
@@ -106,12 +106,6 @@ class Manager:
                 self.e_parts.put("master", part["_id"], part)
 
         raise Exception('insufficient part quantity')
-
-class EngineParts(elephant.local_.Engine):
-    def __init__(self, manager, coll, e_queries):
-        super().__init__(coll, e_queries)
-        self.manager = manager
-        self.h = manager.h
 
 def shell(args):
     import pymongo

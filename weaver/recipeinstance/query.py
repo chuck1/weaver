@@ -1,4 +1,5 @@
 import elephant.local_
+import weaver.engine
 
 class Query(elephant.local_.File):
     async def to_array(self):
@@ -6,7 +7,9 @@ class Query(elephant.local_.File):
         d["_collection"] = "weaver recipeinstances queries"
         return d
 
-class Engine(elephant.local_.Engine):
-    async def _factory(self, d):
-        return Query(self, d)
+class Engine(weaver.engine.EngineLocal):
+    def __init__(self, manager, coll):
+        super().__init__(manager, coll)
+        self._doc_class = Query
+
 

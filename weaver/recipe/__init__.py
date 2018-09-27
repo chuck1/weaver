@@ -1,38 +1,37 @@
+import copy
 import logging
 
 import elephant.local_
 
+import weaver.engine
 import weaver.quantity
 
 logger = logging.getLogger(__name__)
 
 class Recipe(elephant.local_.File):
-    def __init__(self, manager, e, d):
-        super().__init__(e, d)
+    def __init__(self, e, d, _d):
+        super().__init__(e, d, _d)
         self.d["_collection"] = "weaver recipes"
 
     async def update_temp_material(self, user, material):
         if not material: return material
-        if '_design' in material: return material
-        if 'design' not in material: return material
-        if 'id' not in material['design']:
+        if not isinstance(material, weaver.material.Material): return material
+        if 'id' not in material.design:
             logger.warning(f'invalid material: {material!r}')
             return material
 
-        ref = material['design']['ref']
+        ref = material.design['ref']
 
-        d = await self.e.h.weaver.e_designs.find_one(user, ref, {'_id': material['design']['id']})
+        d = await self.e.h.weaver.e_designs.find_one(user, ref, {'_id': material.design['id']})
 
-        m = dict(material)
+        m = copy.deepcopy(material)
 
-        m['design'] = d
+        m.design = d
 
-        if "quantity" in m:
-            if not isinstance(m['quantity'], weaver.quantity.Quantity):
-                m['quantity'] = weaver.quantity.Quantity(m['quantity'])
+        #if not isinstance(m.quantity, weaver.quantity.Quantity):
+        #    m.quantity = weaver.quantity.Quantity(m.quantity)
 
         return m
-
 
     async def temp_materials(self, user):
 
@@ -42,8 +41,12 @@ class Recipe(elephant.local_.File):
 
     async def check(self):
         for m in self.d.get('materials', []):
-            if 'quantity' not in m:
-                m['quantity'] = weaver.quantity.Quantity(0)
+            assert isinstance(m, weaver.material.Material)
+            #if 'quantity' not in m:
+            #    m['quantity'] = weaver.quantity.Quantity(0)
+            #else:
+            #    if not ((m['quantity'] is None) or isinstance(m['quantity'], weaver.quantity.Quantity)):
+            #        raise Exception(f'quantity should be Quantity object, not {type(m["quantity"])} {m["quantity"]}')
 
     async def update_temp(self, user):
         
@@ -85,12 +88,14 @@ class Recipe(elephant.local_.File):
                 f'{str(d.d["_elephant"]["ref"])[-4:]}'))
 
         for m in self.d['materials']:
-            if m['design'] == d.freeze():
-                  
-                if 'quantity' not in m:
-                    return weaver.quantity.Quantity(0)
- 
-                return weaver.quantity.Quantity(m['quantity'])
+            if m.design == d.freeze():
+
+                q = m.quantity
+
+                #if not weaver.quantity.unit_eq(q.unit, d.d.get("unit")):
+                #    await d.conversion(q.unit, d.d.get("unit"))
+
+                return q
 
         raise Exception('design not found in materials of recipe')
 
@@ -100,13 +105,44 @@ class Recipe(elephant.local_.File):
 
         self.print_materials(logger.error)
         logger.error(f'design: {d.d!r}')
- 
 
-class Engine(elephant.local_.Engine):
+    async def _cost(self, user, q0, materials, c):
+
+        try:
+            m = next(materials)
+            while m.quantity.num < 0:
+                m = next(materials)
+        except StopIteration:
+            yield c
+            return
+
+        d = await self.e.h.weaver.e_designs.find_one(user, m.design["ref"], {"_id": m.design["id"]})
+
+        q1 = self.quantity(d)
+
+        q2 = q0 * q1
+
+        async for c1 in d.cost(user, q2):
+            
+            async for _ in self._cost(user, q0, materials, c + c1): yield _
+
+    async def cost(self, user, q0):
+
+        q0 = q0 if isinstance(q0, weaver.quantity.Quantity) else weaver.quantity.Quantity(q0)
+
+        assert weaver.quantity.unit_eq(q0.unit, None)
+
+        materials = iter(self.d.get("materials", []))
+ 
+        async for c in self._cost(user, q0, materials, 0): yield c
+
+
+class Engine(weaver.engine.EngineLocal):
+
+    _doc_class = Recipe
+
     def __init__(self, manager, coll, e_queries):
-        super().__init__(coll, e_queries)
-        self.manager = manager
-        self.h = manager.h
+        super().__init__(manager, coll, e_queries)
 
     def pipe0(self, user):
 
@@ -144,9 +180,5 @@ class Engine(elephant.local_.Engine):
                 "_tags":  {"$first": "$_tags"},
                 "steps": {"$first": "$steps"}
                 }}
-
-
-    async def _factory(self, d):
-        return Recipe(self.manager, self, d)
 
 

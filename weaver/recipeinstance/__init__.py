@@ -2,6 +2,7 @@ import enum
 import logging
 
 import elephant.local_
+import weaver.engine
 
 logger = logging.getLogger(__name__)
 
@@ -148,11 +149,10 @@ class RecipeInstance(elephant.global_.File):
 
         return c
 
-class Engine(elephant.global_.Engine):
+class Engine(weaver.engine.EngineGlobal):
     def __init__(self, manager, coll, e_queries):
-        super().__init__(coll, "master", e_queries)
-        self.manager = manager
-        self.h = manager.h
+        super().__init__(manager, coll, "master", e_queries)
+        self._doc_class = RecipeInstance
 
     def pipe0(self, user):
 
@@ -173,17 +173,5 @@ class Engine(elephant.global_.Engine):
                 '_recipe': {'$arrayElemAt': ['$_recipe', 0]},
                 'recipe': 1,
                 }}
-
-    async def _factory(self, d):
-        return RecipeInstance(self.manager, self, d)
-
-
-
-
-
-
-
-
-
 
 
