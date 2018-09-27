@@ -15,7 +15,9 @@ class Recipe(elephant.local_.File):
 
     async def update_temp_material(self, user, material):
         if not material: return material
-        if not isinstance(material, weaver.material.Material): return material
+
+        assert isinstance(material, weaver.material.Material)
+
         if 'id' not in material.design:
             logger.warning(f'invalid material: {material!r}')
             return material
@@ -24,12 +26,7 @@ class Recipe(elephant.local_.File):
 
         d = await self.e.h.weaver.e_designs.find_one(user, ref, {'_id': material.design['id']})
 
-        m = copy.deepcopy(material)
-
-        m.design = d
-
-        #if not isinstance(m.quantity, weaver.quantity.Quantity):
-        #    m.quantity = weaver.quantity.Quantity(m.quantity)
+        m = weaver.material.Material(d, material.quantity)
 
         return m
 
