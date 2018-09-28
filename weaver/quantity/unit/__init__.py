@@ -82,6 +82,11 @@ class ComposedUnit(BaseUnit):
         return [list(sorted(n for n in N)), list(sorted(d for d in D))]
 
 class Unit(BaseUnit):
+
+    @classmethod
+    async def decode(cls, h, args):
+        return Unit(*args)
+
     def __init__(self, _id):
         assert isinstance(_id, bson.objectid.ObjectId)
         self._id = _id
@@ -100,63 +105,9 @@ class Unit(BaseUnit):
         return f"Unit({str(self._id)[-8:]})"
 
     async def __encode__(self):
-        return {"Unit": [self._id]}
+        args = [self._id]
+        return {"Unit": args}
 
-class Quantity:
-    def __init__(self, num, unit=None):
-       
-
-        # MIGRATE
-        if isinstance(num, dict):
-            a = dict(num)
-            num = a.get("num")
-
-            unit = a.get("unit")
-
-        if isinstance(unit, bson.objectid.ObjectId):
-            unit = Unit(unit)
-
-
-        # validate
- 
-        if not isinstance(num, (int, float)):
-            raise Exception(f"expected int or float, not {type(num)} {num}")
-
-        if not ((unit is None) or isinstance(unit, BaseUnit)):
-            raise Exception(f"expected None or BaseUnit, not {type(unit)} {unit}")
-
-        self.num = num
-        self.unit = unit
-
-    def __repr__(self):
-        return f"Quantity({self.num!r}, {self.unit!r})"
-
-    def __add__(self, other):
-        assert isinstance(other, Quantity)
-        r0 = self.unit.reduce()
-        r1 = other.unit.reduce()
-        if not (r0 == r1):
-            raise Exception(f"Incompatible units {r0!r} and {r1!r}")
-            #raise Exception(f"Incompatible units {self.unit!r} and {other.unit!r}")
-        return Quantity({"num": self.num + other.num, "unit": self.unit})
-
-    def __neg__(self):
-        return Quantity({"num": -self.num, "unit": self.unit})
-
-    def __truediv__(self, other):
-        assert isinstance(other, (int, float, Quantity))
-        if isinstance(other, (int, float)):
-            return Quantity({"num": self.num / other, "unit": self.unit})
-        return Quantity({"num": self.num / other.num, "unit": ComposedUnit([self.unit], [other.unit])})
-
-    def __mul__(self, other):
-        assert isinstance(other, Quantity)
-        return Quantity({"num": self.num * other.num, "unit": ComposedUnit([self.unit, other.unit])})
-
-    async def __encode__(self):
-        args = [self.num, self.unit]
-        args = await elephant.util.encode(args)
-        return {'Quantity': args}
 
 
 

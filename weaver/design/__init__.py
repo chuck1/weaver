@@ -76,7 +76,7 @@ class Design(elephant.local_.File):
             r = [c[0].reduce(), c[1].reduce()]
             print(f"try {r!r}")
             if r == c0:
-                return weaver.quantity.Quantity({"num": y, "unit": weaver.quantity.ComposedUnit([u1], [u0])})
+                return weaver.quantity.Quantity({"num": y, "unit": weaver.quantity.unit.ComposedUnit([u1], [u0])})
 
         print("looking for")
         print(f"    {c1}")
@@ -84,7 +84,7 @@ class Design(elephant.local_.File):
             r = [c[0].reduce(), c[1].reduce()]
             print(f"try {r!r} {r == c1}")
             if r == c1:
-                return weaver.quantity.Quantity({"num": 1/y, "unit": weaver.quantity.ComposedUnit([u1], [u0])})
+                return weaver.quantity.Quantity({"num": 1/y, "unit": weaver.quantity.unit.ComposedUnit([u1], [u0])})
 
         raise Exception("no conversion")
 

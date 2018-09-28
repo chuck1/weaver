@@ -10,13 +10,19 @@ class DesignInstance(elephant.global_.File):
     """
     types identified by fields present
 
+    'design'             - reference to the design
     'recipeinstance_for' - this was created as one of the materials for a recipeinstance
     'quantity'           - this was created manually to originate demand
     'recipeinstance'     - a recipeinstance created to produce this
+    'quantity_actual'    - actual quantity in inventory
     """
     def __init__(self, e, d, _d):
         super().__init__(e, d, _d)
         self.d['_collection'] = 'weaver designinstances'
+
+    def behavior(self):
+        pass
+        
 
     async def update_temp(self, user):
         await super().update_temp(user)
@@ -27,7 +33,7 @@ class DesignInstance(elephant.global_.File):
 
         d  = await self.get_design(user)
         u0 = d.d.get("unit", None)
-        assert (u0 is None) or isinstance(u0, weaver.quantity.BaseUnit)
+        assert (u0 is None) or isinstance(u0, weaver.quantity.unit.BaseUnit)
 
         if 'quantity' in self.d:
             # type 0
@@ -40,7 +46,7 @@ class DesignInstance(elephant.global_.File):
             print(u0)
             print(q.unit)
 
-            assert weaver.quantity.unit_eq(u0, q.unit)
+            assert weaver.quantity.unit.unit_eq(u0, q.unit)
             return q
 
         # type 1
@@ -67,9 +73,9 @@ class DesignInstance(elephant.global_.File):
         print("u0", u0)
         print("u1", u1)
 
-        assert (u1 is None) or isinstance(u1, weaver.quantity.BaseUnit)
+        assert (u1 is None) or isinstance(u1, weaver.quantity.unit.BaseUnit)
 
-        assert weaver.quantity.unit_eq(u0, u1)
+        assert weaver.quantity.unit.unit_eq(u0, u1)
 
         return q        
 
