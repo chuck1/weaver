@@ -189,6 +189,8 @@ class Engine(weaver.engine.EngineGlobal):
             upsert=True,
             return_document=pymongo.ReturnDocument.BEFORE,
             )
+        if counter is None: return 0
+        return counter["count"]
 
     async def next_id(self):
         return await self.counter('designinstane_id')
