@@ -100,6 +100,7 @@ class RecipeInstance(elephant.global_.File):
                         user,
                         None,
                         {
+                            'mode':   weaver.designinstance.DesignInstanceMode.RECIPEINSTANCE.value,
                             'design': m.design,
                             'recipeinstance_for': self.freeze(),
                         })

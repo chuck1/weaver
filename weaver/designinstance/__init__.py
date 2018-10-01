@@ -1,10 +1,19 @@
-import pprint
+import enum
 import logging
+import pprint
 
 import elephant.local_
 import weaver.recipeinstance
 
 logger = logging.getLogger(__name__)
+
+class DesignInstanceMode(enum.Enum):
+    # created to represent actual inventory
+    INVENTORY      = 0
+    # created as ingredient for recipeinstance
+    RECIPEINSTANCE = 1
+    # created to create demand without a recipeinstance or an on-hand quantity
+    DEMAND         = 2
 
 class DesignInstance(elephant.global_.File):
     """
@@ -22,7 +31,9 @@ class DesignInstance(elephant.global_.File):
 
     def behavior(self):
         pass
-        
+
+    async def check_0(self):
+        DesignInstanceMode(self.d["mode"])
 
     async def update_temp(self, user):
         await super().update_temp(user)

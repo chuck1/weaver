@@ -95,7 +95,8 @@ class Design(elephant.local_.File):
         weaver.quantity.Quantity(quantity)
 
         d0 = {
-                'design': self.freeze(),
+                'mode':     weaver.designinstance.DesignInstanceMode.DEMAND.value,
+                'design':   self.freeze(),
                 'quantity': quantity,
                 }
 
