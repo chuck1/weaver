@@ -8,12 +8,17 @@ async def decode(h, args):
 
 class Material:
     def __init__(self, design, quantity):
+
+        if not isinstance(design, dict):
+            raise Exception(f'first argument must be dict')
+
+        if not isinstance(quantity, (int, float, weaver.quantity.Quantity)):
+            raise Exception(f'invalid type for \'quantity\' argument: {type(quantity)}')
+
         self._design = design
         self.design = design
         self._quantity = quantity
   
-        if not isinstance(quantity, (int, float, weaver.quantity.Quantity)):
-            raise Exception(f'invalid type for \'quantity\' argument: {type(quantity)}')
 
         if isinstance(quantity, weaver.quantity.Quantity):
             self.quantity = quantity

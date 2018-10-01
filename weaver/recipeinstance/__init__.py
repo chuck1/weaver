@@ -7,10 +7,14 @@ import weaver.engine
 logger = logging.getLogger(__name__)
 
 class Status(enum.Enum):
-    PLANNED = 0
+    PLANNED  = 0
     COMPLETE = 1
 
 class RecipeInstance(elephant.global_.File):
+    """
+    recipe         - ref of recipe
+    designinstance - id of designinstance that this was created to produce
+    """
     def __init__(self, e, d, _d):
         super().__init__(e, d, _d)
 
@@ -64,7 +68,7 @@ class RecipeInstance(elephant.global_.File):
             if di.d.get('recipeinstance', None) == self.d['_id']:
                 return True
             else:
-                logger.debug('RI type 1 reference doesnt match {0} != {1}'.format(
+                logger.warning('RI type 1 reference doesnt match {0} != {1}'.format(
                         di.d.get('recipeinstance', None),
                         self.d['_id'],
                         ))

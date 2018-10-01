@@ -15,6 +15,16 @@ class DesignInstanceMode(enum.Enum):
     # created to create demand without a recipeinstance or an on-hand quantity
     DEMAND         = 2
 
+class Behavior:
+    def __init__(self, doc):
+        self.doc = doc
+    async def quantity_inventory(self, user):
+        raise NotImplementedError()
+
+class BehaviorInventory(Behavior):
+    async def quantity_inventory(self, user):
+        return self.doc.d["quantity"]
+
 class DesignInstance(elephant.global_.File):
     """
     types identified by fields present
@@ -30,7 +40,9 @@ class DesignInstance(elephant.global_.File):
         self.d['_collection'] = 'weaver designinstances'
 
     def behavior(self):
-        pass
+        return {
+                DesignInstanceMode.INVENTORY: BehaviorInventory(self),
+                }[DesignInstanceMode(self.d["mode"])]
 
     async def check_0(self):
         DesignInstanceMode(self.d["mode"])
@@ -38,38 +50,18 @@ class DesignInstance(elephant.global_.File):
     async def update_temp(self, user):
         await super().update_temp(user)
         
-    async def quantity_demand(self, user):
-        
-        assert not (('quantity' in self.d) and ('recipeinstance_for' in self.d))
+    async def quantity_recipeinstance_for(self, user):
 
-        d  = await self.get_design(user)
-        u0 = d.d.get("unit", None)
-        assert (u0 is None) or isinstance(u0, weaver.quantity.unit.BaseUnit)
+        d = await self.get_design(user)
 
-        if 'quantity' in self.d:
-            # type 0
-            logger.debug(f'DI demand type 0. q = {self.d["quantity"]}')
-
-            q = weaver.quantity.Quantity(self.d['quantity'])
-            q = q * (await d.conversion(q.unit, u0))
-
-            print("assert equal")
-            print(u0)
-            print(q.unit)
-
-            assert weaver.quantity.unit.unit_eq(u0, q.unit)
-            return q
-
-        # type 1
         ri = await self.get_recipeinstance_for(user)
 
         if not (await ri.is_planned(user)):
-            logger.debug('DI demand type 1 not planned')
+            logger.info('DI demand type 1 not planned')
             print('DI demand type 1 not planned')
-            return 0
+            return weaver.quantity.Quantity(0, d.d.get("unit"))
 
         r  = await ri.get_recipe(user)
-
 
         q_r = await ri.quantity(user)
 
@@ -77,6 +69,7 @@ class DesignInstance(elephant.global_.File):
 
         q = q_r * q_m
 
+        u0 = d.d.get("unit", None)
         u1 = q.unit
 
         pprint.pprint(d.d)
@@ -89,6 +82,30 @@ class DesignInstance(elephant.global_.File):
         assert weaver.quantity.unit.unit_eq(u0, u1)
 
         return q        
+
+    async def quantity_demand(self, user):
+        
+        assert not (('quantity' in self.d) and ('recipeinstance_for' in self.d))
+
+        d  = await self.get_design(user)
+        u0 = d.d.get("unit", None)
+        assert (u0 is None) or isinstance(u0, weaver.quantity.unit.BaseUnit)
+
+        if 'quantity' in self.d:
+            # type 0
+            logger.debug(f'DI demand type 0. q = {self.d["quantity"]}')
+
+            q = self.d['quantity']
+            q = q * (await d.conversion(q.unit, u0))
+
+            print("assert equal")
+            print(u0)
+            print(q.unit)
+
+            assert weaver.quantity.unit.unit_eq(u0, q.unit)
+            return q
+
+        return await self.quantity_recipeinstance_for(user)
 
     async def cost(self, user):
 
@@ -104,6 +121,8 @@ class DesignInstance(elephant.global_.File):
         return 0
 
     async def quantity_inventory(self, user):
+
+        return await self.behavior().quantity_inventory(user)
         
         assert not (('quantity' in self.d) and ('recipeinstance_for' in self.d))
 
@@ -116,6 +135,9 @@ class DesignInstance(elephant.global_.File):
 
         if ri.d.get('status', None) != weaver.recipeinstance.Status.COMPLETE:
             return 0
+
+        # TODO instead of the following, consider creating INVENTORY mode design 
+        # instance upon recipeinstance completion
 
         r  = await ri.get_recipe(user)
 
@@ -152,7 +174,7 @@ class DesignInstance(elephant.global_.File):
         return d0
 
     async def get_design(self, user):
-        if 'design' not in self.d: return
+        #if 'design' not in self.d: return
 
         logger.debug((
                 f'designinstance get design '
@@ -172,6 +194,32 @@ class DesignInstance(elephant.global_.File):
                 d0.d["_elephant"]["refs"][d0.d["_elephant"]["ref"]] == self.d['design']['ref']
  
         return d0
+
+    async def set_recipe(self, user, ref_recipe):
+
+        d1 = await self.e.manager.e_recipes.find_one(
+                user,
+                ref_recipe['ref'],
+                {'_id': ref_recipe['id']},
+                )
+        
+        logger.debug(f'recipe: {d1!r}')
+
+        di = await self.e.manager.e_recipeinstances.put(
+                user,
+                None,
+                {
+                    "recipe": ref_recipe,
+                    "designinstance": self.freeze(),
+                },
+                )
+                    
+        logger.debug(f'recipeinstance: {di!r}')
+
+        self.d["recipeinstance"] = di.freeze()
+        await self.put(user)
+
+        return di
 
     async def to_array(self):
         d = dict(self.d)

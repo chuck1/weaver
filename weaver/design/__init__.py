@@ -10,8 +10,10 @@ class Design(elephant.local_.File):
     """
     fields
 
-    'unit' - default unit
-    'conversions' - conversions between units of different fundamental measurement
+    'unit'           - default unit
+    'conversions'   - conversions between units of different fundamental measurement
+    'onhand'        - desired onhand quantity. used for automaticly adding to shopping list
+    'onhand_thresh' - threshold for purchase quantity when buying to meet onhand quantity
     """
 
     def __init__(self, e, d, _d):
@@ -38,6 +40,12 @@ class Design(elephant.local_.File):
                 'id': self.d['_id'],
                 'ref': self.d['_elephant']['refs'][self.d['_elephant']['ref']],
                 }
+
+    async def quantity_onhand(self):
+        return self.d.get("onhand", weaver.quantity.Quantity(0, self.d.get("unit", None)))
+
+    async def quantity_onhand_threshold(self):
+        return self.d.get("onhand_threshold", weaver.quantity.Quantity(0, self.d.get("unit", None)))
 
     async def list_recipes_negative(self, user):
 
