@@ -192,4 +192,7 @@ class Engine(weaver.engine.EngineLocal):
         self.manager = manager
         self.h = manager.h
 
+    async def create_indices(self):
+        self.coll.files.create_index([("description", "text")])
+
 
