@@ -1,7 +1,7 @@
 import enum
 import logging
 import pprint
-
+import pymongo
 import elephant.local_
 import weaver.recipeinstance
 
@@ -170,8 +170,6 @@ class DesignInstance(elephant.global_.File):
         assert \
                 d0.d["_elephant"]["ref"] == self.d['design']['ref'] or \
                 d0.d["_elephant"]["refs"][d0.d["_elephant"]["ref"]] == self.d['design']['ref']
-         
-         
  
         return d0
 
@@ -183,6 +181,21 @@ class Engine(weaver.engine.EngineGlobal):
     def __init__(self, manager, coll, e_queries):
         super().__init__(manager, coll, "master", e_queries)
         self._doc_class = DesignInstance
+
+    async def counter(self, name):
+        counter = self.manager.h.db.counters.find_one_and_update(
+            {'name': name},
+            {'$inc': {'count': 1}},
+            upsert=True,
+            return_document=pymongo.ReturnDocument.BEFORE,
+            )
+
+    async def next_id(self):
+        return await self.counter('designinstane_id')
+
+    async def pre_put_new(self, d_0):
+        d_0['id_1'] = await self.next_id()
+        return d_0
 
     def pipe0(self, user):
 
