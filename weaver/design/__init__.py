@@ -76,7 +76,7 @@ class Design(elephant.local_.File):
         c1 = [r1, r0]
 
         if r0 == r1:
-            return weaver.quantity.Quantity({"num": 1, "unit": None})
+            return weaver.quantity.Quantity(1)
 
         print("looking for")
         print(f"    {c0}")
