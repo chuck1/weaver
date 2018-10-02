@@ -97,10 +97,8 @@ class Design(elephant.local_.doc.Doc):
         raise Exception("no conversion")
 
     async def produce(self, user, quantity):
-        if not isinstance(quantity, (int, float, dict)):
+        if not isinstance(quantity, weaver.quantity.Quantity):
             raise TypeError()
-
-        weaver.quantity.Quantity(quantity)
 
         d0 = {
                 'mode':     weaver.designinstance.DesignInstanceMode.DEMAND.value,
