@@ -26,7 +26,7 @@ class Recipe(elephant.local_.doc.Doc):
 
         d = await self.e.h.weaver.e_designs.find_one(user, ref, {'_id': material.design['id']})
 
-        m = weaver.material.Material(d, material.quantity)
+        m = weaver.material.Material(d.freeze(), material.quantity)
 
         return m
 
