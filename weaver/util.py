@@ -1,9 +1,9 @@
 import bson
 import datetime
 
-import elephant.file
+import elephant.doc
 
-class _AArray(elephant.file.File):
+class DEP_AArray(elephant.doc.Doc):
     def __init__(self, manager, e, _id, d):
         super(_AArray, self).__init__(e, d)
         self.manager = manager

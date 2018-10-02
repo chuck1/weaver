@@ -6,7 +6,7 @@ import weaver.util
 
 logger = logging.getLogger(__name__)
 
-class Design(elephant.local_.File):
+class Design(elephant.local_.doc.Doc):
     """
     fields
 

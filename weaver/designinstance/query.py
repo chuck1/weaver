@@ -1,7 +1,7 @@
 import elephant.local_
 import weaver.engine
 
-class Query(elephant.local_.File):
+class Query(elephant.local_.doc.Query):
     async def to_array(self):
         d = dict(self.d)
         d["_collection"] = "weaver designinstances queries"

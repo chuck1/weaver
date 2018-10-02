@@ -8,7 +8,7 @@ import weaver.quantity
 
 logger = logging.getLogger(__name__)
 
-class Recipe(elephant.local_.File):
+class Recipe(elephant.local_.doc.Doc):
     def __init__(self, e, d, _d):
         super().__init__(e, d, _d)
         self.d["_collection"] = "weaver recipes"
