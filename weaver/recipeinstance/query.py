@@ -2,10 +2,9 @@ import elephant.local_
 import weaver.engine
 
 class Query(elephant.local_.doc.Query):
-    async def to_array(self):
-        d = dict(self.d)
-        d["_collection"] = "weaver recipeinstances queries"
-        return d
+    def __init__(self, e, d, _d):
+        super().__init__(e, d, _d)
+        self.d["_collection"] = "weaver recipeinstances queries"
 
 class Engine(weaver.engine.EngineLocal):
     def __init__(self, manager, coll):
