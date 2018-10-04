@@ -44,6 +44,16 @@ class DesignInstance(elephant.global_.File):
                 DesignInstanceMode.INVENTORY: BehaviorInventory(self),
                 }[DesignInstanceMode(self.d["mode"])]
 
+    @classmethod
+    async def get_test_document(self, b0={}):
+        """
+        because a design reference is required, cannot create test document
+        without actual database context
+        """
+        b1 = {}
+        b1.update(b0)
+        return await super().get_test_document(b1)
+
     async def check_0(self):
         DesignInstanceMode(self.d["mode"])
 

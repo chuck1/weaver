@@ -2,6 +2,7 @@
 import elephant.util
 
 import weaver.quantity
+import weaver.design
 
 async def decode(h, args):
     return Material(args["design"], args["quantity"])
@@ -9,8 +10,12 @@ async def decode(h, args):
 class Material:
     def __init__(self, design, quantity):
 
+        # fix
+        if isinstance(design, weaver.design.Design):
+            design = design.freeze()
+
         if not isinstance(design, dict):
-            raise Exception(f'first argument must be dict')
+            raise Exception(f'first argument must be dict not {design!r}')
 
         if not isinstance(quantity, (int, float, weaver.quantity.Quantity)):
             raise Exception(f'invalid type for \'quantity\' argument: {type(quantity)}')
