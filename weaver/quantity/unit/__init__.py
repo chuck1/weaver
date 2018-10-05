@@ -40,16 +40,21 @@ def _reduce(N, D):
 def unit_eq(x, y):
     if (x is None) and (y is None): return True
     if x is None:
-        if y.reduce() == [[], []]: return True
+        if y.reduce() == ([], []): return True
         return False
     if y is None:
-        if x.reduce() == [[], []]: return True
+        if x.reduce() == ([], []): return True
         return False
     return x.reduce() ==  y.reduce()
 
-#def simplify(u):
-#    if isinstance(u, ComposedUnit):
-        
+def simplify(u):
+    if isinstance(u, ComposedUnit):
+        N, D = u.reduce()
+        if (not N) and (not D):
+            return None
+        if (len(N) == 1) and (not D):
+            return N[0]
+    return u
 
 class BaseUnit: pass
 
@@ -79,7 +84,14 @@ class ComposedUnit(BaseUnit):
             if not n: break
             N.remove(n)
             D.remove(n)
-        return [list(sorted(n for n in N)), list(sorted(d for d in D))]
+        return (list(sorted(n for n in N)), list(sorted(d for d in D)))
+
+    async def __encode__(self):
+        u = simplify(self)
+
+        if u is self: raise Exception()
+ 
+        return u
 
 class Unit(BaseUnit):
 
@@ -92,7 +104,7 @@ class Unit(BaseUnit):
         self._id = _id
     
     def reduce(self):
-        return [[self], []]
+        return ([self], [])
 
     def __lt__(self, other):
         return self._id < other._id

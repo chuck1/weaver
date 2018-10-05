@@ -112,7 +112,8 @@ class DesignInstance(elephant.global_.File):
             print(u0)
             print(q.unit)
 
-            assert weaver.quantity.unit.unit_eq(u0, q.unit)
+            if not weaver.quantity.unit.unit_eq(u0, q.unit):
+                raise Exception(f"Units must be equal. {u0!s} and {q.unit!s}")
             return q
 
         return await self.quantity_recipeinstance_for(user)

@@ -125,7 +125,7 @@ class RecipeInstance(elephant.global_.File):
   
         q2 = -q0 / q1 * (await d.conversion(q0.unit, q1.unit))
 
-        if not (q2.unit.reduce() == [[], []]):
+        if not (q2.unit.reduce() == ([], [])):
             logger.error(repr(q2.unit.reduce()))
             raise Exception("recipeinstance quantity should have no units")
 
