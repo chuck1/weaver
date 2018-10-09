@@ -5,35 +5,40 @@ import weaver.quantity
 import weaver.design
 
 async def decode(h, args):
-    return Material(args["design"], args["quantity"])
+    return Material(*args)
 
 class Material:
-    def __init__(self, design, quantity):
+    def __init__(self, design_ref, quantity):
 
         # fix
-        if isinstance(design, weaver.design.Design):
-            design = design.freeze()
+        if isinstance(quantity, (int, float)):
+            quantity = weaver.quantity.Quantity(quantity)
 
-        if not isinstance(design, dict):
-            raise Exception(f'first argument must be dict not {design!r}')
-
-        if not isinstance(quantity, (int, float, weaver.quantity.Quantity)):
+        # validate
+        assert isinstance(design_ref, dict)
+        
+        if not isinstance(quantity, weaver.quantity.Quantity):
             raise Exception(f'invalid type for \'quantity\' argument: {type(quantity)}')
 
-        self._design = design
-        self.design = design
-        self._quantity = quantity
+        #
+
+        self.design_ref = design_ref
+        self.quantity = quantity
   
+    async def get_design(self, h, user):
+        o = await h.weaver.e_designs.find_one_by_id(user, self.design_ref["ref"], self.design_ref["id"])
+        assert o is not None
+        return o
 
-        if isinstance(quantity, weaver.quantity.Quantity):
-            self.quantity = quantity
-        elif isinstance(quantity, (int, float)):
-            self.quantity = weaver.quantity.Quantity(quantity)
+    async def __encode__(self, h, user, mode):
+        if mode == elephant.EncodeMode.DATABASE:
+            args = [self.design_ref, self.quantity]
 
-    async def __encode__(self):
-        args = {
-                "design": self._design,
-                "quantity": self._quantity,
-                }
-        return {'Material': await elephant.util.encode(args)}
+        elif mode == elephant.EncodeMode.CLIENT:
+            design = await self.get_design(h, user)
+            args = [self.design_ref, self.quantity, design]
+
+        return {'Material': await elephant.util.encode(h, user, mode, args)}
+
+
 

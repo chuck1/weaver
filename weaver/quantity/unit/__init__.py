@@ -86,7 +86,7 @@ class ComposedUnit(BaseUnit):
             D.remove(n)
         return (list(sorted(n for n in N)), list(sorted(d for d in D)))
 
-    async def __encode__(self):
+    async def __encode__(self, h, user, mode):
         u = simplify(self)
 
         if u is self: raise Exception()
@@ -116,7 +116,7 @@ class Unit(BaseUnit):
     def __repr__(self):
         return f"Unit({str(self._id)[-8:]})"
 
-    async def __encode__(self):
+    async def __encode__(self, h, user, mode):
         args = [self._id]
         return {"Unit": args}
 

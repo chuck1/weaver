@@ -87,12 +87,12 @@ class RecipeInstance(elephant.global_.File):
         print(f'    recipe:         {d2!r}')
 
         for m in d2.d['materials']:
-            logger.info(f'      {m.design!r}')
+            #logger.info(f'      {m.design!r}')
 
             d3 = await self.e.manager.e_designinstances.find_one(
                     user,
                     {
-                        'design': m.design,
+                        'design': m.design_ref,
                         'recipeinstance_for': self.freeze(),
                     },
                     )
@@ -105,7 +105,7 @@ class RecipeInstance(elephant.global_.File):
                         None,
                         {
                             'mode':   weaver.designinstance.DesignInstanceMode.RECIPEINSTANCE.value,
-                            'design': m.design,
+                            'design': m.design_ref,
                             'recipeinstance_for': self.freeze(),
                         })
 

@@ -16,8 +16,8 @@ class Design(elephant.local_.doc.Doc):
     'onhand_thresh' - threshold for purchase quantity when buying to meet onhand quantity
     """
 
-    def __init__(self, e, d, _d):
-        super().__init__(e, d, _d)
+    def __init__(self, e, d, _d, is_subobject=False):
+        super().__init__(e, d, _d, is_subobject)
         self.d["_collection"] = "weaver designs"
 
     def visit_manager_produce(self, user, manager, m, q):
@@ -118,7 +118,7 @@ class Design(elephant.local_.doc.Doc):
     async def cost(self, user, q):
         # yield the cost of all possible options for producing this design
         
-        if not weaver.quantity.unit_eq(self.d.get("unit"), q.unit):
+        if not weaver.quantity.unit.unit_eq(self.d.get("unit"), q.unit):
 
             try:
                 c = await self.conversion(q.unit, self.d.get("unit"))
