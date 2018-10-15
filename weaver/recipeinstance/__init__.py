@@ -39,13 +39,13 @@ class RecipeInstance(elephant.global_.File):
 
         logger.debug((
                 f'recipeinstance get recipe '
-                f'{str(self.d["recipe"]["id"])[-4:]} '
-                f'{str(self.d["recipe"]["ref"])[-4:]}'))
+                f'{str(self.d["recipe"]._id)[-4:]} '
+                f'{str(self.d["recipe"].ref)[-4:]}'))
 
         d2 = await self.e.manager.e_recipes.find_one(
                 user,
-                self.d['recipe']['ref'],
-                {'_id': self.d['recipe']['id']},
+                self.d['recipe'].ref,
+                {'_id': self.d['recipe']._id},
                 )
 
         #logger.debug(f'recipe {d2.d["_elephant"]!r}')

@@ -29,18 +29,6 @@ class Design(elephant.local_.doc.Doc):
             print(indent + f'quantity: {m["quantity"]}')
             print(indent + f'consumed: {m["consumed"]}')
 
-    def freeze(self):
-        if isinstance(self.d['_elephant']['ref'], bson.objectid.ObjectId):
-            return {
-                'id': self.d['_id'],
-                'ref': self.d['_elephant']['ref'],
-                }
-        else:
-            return {
-                'id': self.d['_id'],
-                'ref': self.d['_elephant']['refs'][self.d['_elephant']['ref']],
-                }
-
     async def quantity_onhand(self):
         return self.d.get("onhand", weaver.quantity.Quantity(0, self.d.get("unit", None)))
 

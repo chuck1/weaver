@@ -189,20 +189,20 @@ class DesignInstance(elephant.global_.File):
 
         logger.debug((
                 f'designinstance get design '
-                f'{str(self.d["design"]["id"])[-4:]} '
-                f'{str(self.d["design"]["ref"])[-4:]} '
+                f'{str(self.d["design"]._id)[-4:]} '
+                f'{str(self.d["design"].ref)[-4:]} '
                 ))
 
         d0 = await self.e.manager.e_designs.find_one(
                 user,
-                self.d['design']['ref'],
-                {"_id": self.d['design']['id']})
+                self.d['design'].ref,
+                {"_id": self.d['design']._id})
 
         assert d0 is not None
 
         assert \
-                d0.d["_elephant"]["ref"] == self.d['design']['ref'] or \
-                d0.d["_elephant"]["refs"][d0.d["_elephant"]["ref"]] == self.d['design']['ref']
+                d0.d["_elephant"]["ref"] == self.d['design'].ref or \
+                d0.d["_elephant"]["refs"][d0.d["_elephant"]["ref"]] == self.d['design'].ref
  
         return d0
 
@@ -210,8 +210,8 @@ class DesignInstance(elephant.global_.File):
 
         d1 = await self.e.manager.e_recipes.find_one(
                 user,
-                ref_recipe['ref'],
-                {'_id': ref_recipe['id']},
+                ref_recipe.ref,
+                {'_id': ref_recipe._id},
                 )
         
         logger.debug(f'recipe: {d1!r}')
@@ -222,6 +222,7 @@ class DesignInstance(elephant.global_.File):
                 {
                     "recipe": ref_recipe,
                     "designinstance": self.freeze(),
+                    "status": weaver.recipeinstance.Status.PLANNED.value,
                 },
                 )
                     

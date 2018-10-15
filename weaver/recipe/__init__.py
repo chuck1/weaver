@@ -18,13 +18,9 @@ class Recipe(elephant.local_.doc.Doc):
 
         assert isinstance(material, weaver.material.Material)
 
-        if 'id' not in material.design_ref:
-            logger.warning(f'invalid material: {material!r}')
-            return material
+        ref = material.design_ref.ref
 
-        ref = material.design_ref['ref']
-
-        d = await self.e.h.weaver.e_designs.find_one(user, ref, {'_id': material.design_ref['id']})
+        d = await self.e.h.weaver.e_designs.find_one(user, ref, {'_id': material.design_ref._id})
 
         m = weaver.material.Material(d.freeze(), material.quantity)
 

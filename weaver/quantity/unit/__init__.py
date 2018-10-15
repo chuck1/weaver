@@ -99,26 +99,26 @@ class Unit(BaseUnit):
     async def decode(cls, h, args):
         return Unit(*args)
 
-    def __init__(self, _id):
-        assert isinstance(_id, bson.objectid.ObjectId)
-        self._id = _id
+    def __init__(self, ref):
+        assert isinstance(ref, elephant.ref.DocRef)
+        self.ref = ref
     
     def reduce(self):
         return ([self], [])
 
     def __lt__(self, other):
-        return self._id < other._id
+        return self.ref < other.ref
 
     def __eq__(self, other):
         if not isinstance(other, Unit): return False
-        return self._id == other._id
+        return self.ref == other.ref
 
     def __repr__(self):
-        return f"Unit({str(self._id)[-8:]})"
+        return f"Unit({str(self.ref)[-8:]})"
 
     async def __encode__(self, h, user, mode):
-        args = [self._id]
-        return {"Unit": args}
+        args = [self.ref]
+        return {"Unit": await elephant.util.encode(h, user, mode, args)}
 
 
 

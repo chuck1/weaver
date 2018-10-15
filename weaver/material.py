@@ -15,7 +15,7 @@ class Material:
             quantity = weaver.quantity.Quantity(quantity)
 
         # validate
-        assert isinstance(design_ref, dict)
+        assert isinstance(design_ref, elephant.ref.DocRef)
         
         if not isinstance(quantity, weaver.quantity.Quantity):
             raise Exception(f'invalid type for \'quantity\' argument: {type(quantity)}')
