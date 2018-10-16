@@ -4,15 +4,25 @@ import elephant.util
 import weaver.quantity
 import weaver.design
 
-async def decode(h, args):
-    return Material(*args)
-
 class Material:
+
+    @classmethod
+    async def decode(cls, h, args):
+
+        # fix
+        if isinstance(args, dict):
+            args = [args["design"], args["quantity"]]
+
+        return Material(*args)
+
     def __init__(self, design_ref, quantity):
 
         # fix
         if isinstance(quantity, (int, float)):
             quantity = weaver.quantity.Quantity(quantity)
+
+        if isinstance(design_ref, dict):
+            design_ref = elephant.ref.DocRef(design_ref['id'], design_ref['ref'])
 
         # validate
         assert isinstance(design_ref, elephant.ref.DocRef)

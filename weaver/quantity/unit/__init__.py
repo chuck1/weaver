@@ -100,6 +100,11 @@ class Unit(BaseUnit):
         return Unit(*args)
 
     def __init__(self, ref):
+
+        # fix
+        if isinstance(ref, bson.objectid.ObjectId):
+            ref = elephant.ref.DocRef(ref)
+
         assert isinstance(ref, elephant.ref.DocRef)
         self.ref = ref
     
