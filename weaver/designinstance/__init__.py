@@ -18,12 +18,36 @@ class DesignInstanceMode(enum.Enum):
 class Behavior:
     def __init__(self, doc):
         self.doc = doc
+
     async def quantity_inventory(self, user):
         raise NotImplementedError()
 
 class BehaviorInventory(Behavior):
+
     async def quantity_inventory(self, user):
         return self.doc.d["quantity"]
+
+    async def check(self):
+        if not isinstance(self.doc.d["design"], elephant.ref.DocRef): raise TypeError()
+        if not isinstance(self.doc.d["quantity"], weaver.quantity.Quantity): raise TypeError()
+
+class BehaviorDemand(Behavior):
+
+    async def quantity_inventory(self, user):
+        raise NotImplementedError()
+
+    async def check(self):
+        if not isinstance(self.doc.d["design"], elephant.ref.DocRef): raise TypeError()
+        if not isinstance(self.doc.d["quantity"], weaver.quantity.Quantity): raise TypeError()
+
+class BehaviorRecipeInstance(Behavior):
+
+    async def quantity_inventory(self, user):
+        raise NotImplementedError()
+
+    async def check(self):
+        if not isinstance(self.doc.d["recipeinstance_for"], elephant.ref.DocRef): raise TypeError()
+        #if not isinstance(self.doc.d["quantity"], weaver.quantity.Quantity): raise TypeError()
 
 class DesignInstance(elephant.global_.File):
     """
@@ -41,8 +65,14 @@ class DesignInstance(elephant.global_.File):
 
     def behavior(self):
         return {
-                DesignInstanceMode.INVENTORY: BehaviorInventory(self),
+                DesignInstanceMode.INVENTORY:      BehaviorInventory(self),
+                DesignInstanceMode.DEMAND:         BehaviorDemand(self),
+                DesignInstanceMode.RECIPEINSTANCE: BehaviorRecipeInstance(self),
                 }[DesignInstanceMode(self.d["mode"])]
+
+    async def check(self):
+        await self.check_0()
+        await self.behavior().check()
 
     @classmethod
     async def get_test_document(self, b0={}):
@@ -165,9 +195,10 @@ class DesignInstance(elephant.global_.File):
     async def get_recipeinstance_for(self, user):
         if 'recipeinstance_for' not in self.d: return
 
-        d0 = await self.e.manager.e_recipeinstances.find_one(
+        d0 = await self.e.manager.e_recipeinstances.find_one_by_ref(
                 user,
-                {"_id": self.d['recipeinstance_for']})
+                self.d['recipeinstance_for'],
+                )
 
         assert d0 is not None
   
@@ -176,9 +207,10 @@ class DesignInstance(elephant.global_.File):
     async def get_recipeinstance(self, user):
         if 'recipeinstance' not in self.d: return
 
-        d0 = await self.e.manager.e_recipeinstances.find_one(
+        d0 = await self.e.manager.e_recipeinstances.find_one_by_ref(
                 user,
-                {"_id": self.d['recipeinstance']})
+                self.d['recipeinstance'],
+                )
 
         assert d0 is not None
   
@@ -241,6 +273,23 @@ class Engine(weaver.engine.EngineGlobal):
     def __init__(self, manager, coll, e_queries):
         super().__init__(manager, coll, "master", e_queries)
         self._doc_class = DesignInstance
+
+    async def get_test_object(self, user, b0={}):
+
+        design = await self.manager.e_designs.get_test_object(user)
+
+        b1 = {
+            "mode": DesignInstanceMode.INVENTORY.value,
+            "design": design.freeze(),
+            "quantity": weaver.quantity.Quantity(1, design.d.get("unit")),
+            }
+
+        b1.update(b0)
+
+        b = await self._doc_class.get_test_document(b1)
+
+        o = await self.put(user, None, b)
+        return o
 
     async def counter(self, name):
         counter = self.manager.h.db.counters.find_one_and_update(

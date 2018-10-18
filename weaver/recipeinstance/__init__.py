@@ -23,14 +23,6 @@ class RecipeInstance(elephant.global_.File):
 
         self.d["_temp"]["cost"] = await self.cost(user)
         
-    def freeze(self):
-        """
-        this does not return ref because it does not make
-        sense for multiple versions of this to coexist
-        in fact, this could be converted to global
-        """
-        return self.d['_id']
-
     def valid(self):
         assert 'status' in self.d
         Status(self.d['status'])
@@ -86,7 +78,7 @@ class RecipeInstance(elephant.global_.File):
         print(f'    recipeinstance: {self!r}')
         print(f'    recipe:         {d2!r}')
 
-        for m in d2.d['materials']:
+        for m in d2.d.get('materials', []):
             #logger.info(f'      {m.design!r}')
 
             d3 = await self.e.manager.e_designinstances.find_one(
@@ -98,7 +90,7 @@ class RecipeInstance(elephant.global_.File):
                     )
 
             if d3 is None:
-                print('creating missing designinstance!!!')
+                logger.info('creating missing designinstance')
 
                 d3 = await self.e.manager.e_designinstances.put(
                         user,
@@ -158,9 +150,29 @@ class Engine(weaver.engine.EngineGlobal):
         super().__init__(manager, coll, "master", e_queries)
         self._doc_class = RecipeInstance
 
+    async def get_test_object(self, user, b0={}):
+
+        recipe = await self.manager.e_recipes.get_test_object(user)
+
+        b1 = {
+            "recipe": recipe.freeze(),
+            #"mode": DesignInstanceMode.INVENTORY.value,
+            #"quantity": weaver.quantity.Quantity(1, design.d.get("unit")),
+            }
+
+        b1.update(b0)
+
+        b = await self._doc_class.get_test_document(b1)
+
+        o = await self.put(user, None, b)
+
+        return o
+
     def pipe0(self, user):
 
         yield from super().pipe0(user)
+
+        return
 
         # recipe
         yield {"$addFields": {"recipe_id": "$recipe.id"}}
