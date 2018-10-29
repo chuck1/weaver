@@ -119,7 +119,7 @@ class Unit(BaseUnit):
         return self.ref == other.ref
 
     def __repr__(self):
-        return f"Unit({str(self.ref)[-8:]})"
+        return f"Unit({self.ref!r})"
 
     async def __encode__(self, h, user, mode):
         args = [self.ref]
