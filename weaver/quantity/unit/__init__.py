@@ -102,8 +102,8 @@ class Unit(BaseUnit):
     def __init__(self, ref):
 
         # fix
-        if isinstance(ref, bson.objectid.ObjectId):
-            ref = elephant.ref.DocRef(ref)
+        #if isinstance(ref, bson.objectid.ObjectId):
+        #    ref = elephant.ref.DocRef(ref)
 
         assert isinstance(ref, elephant.ref.DocRef)
         self.ref = ref
@@ -123,6 +123,13 @@ class Unit(BaseUnit):
 
     async def __encode__(self, h, user, mode):
         args = [self.ref]
+
+        if mode == elephant.EncodeMode.CLIENT:
+            doc = await h.weaver.e_units.find_one_by_ref(user, self.ref)
+            if doc is None:
+                raise RuntimeError('unit document not found')
+            args.append(doc)
+
         return {"Unit": await elephant.util.encode(h, user, mode, args)}
 
 

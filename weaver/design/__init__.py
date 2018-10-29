@@ -20,6 +20,18 @@ class Design(elephant.local_.doc.Doc):
         super().__init__(e, d, _d, is_subobject)
         self.d["_collection"] = "weaver designs"
 
+    async def update_temp(self, user):
+        await super().update_temp(user)
+        
+        #self.d["temp"]["unit"] =
+
+    async def check(self):
+        await super().check()
+
+        if self.d.get("unit") is not None:
+            if not isinstance(self.d.get("unit"), weaver.quantity.unit.BaseUnit):
+                raise TypeError(f'expected BaseUnit not {self.d.get("unit")!r}')
+
     def visit_manager_produce(self, user, manager, m, q):
         return manager.purchase(user, m, q)
 
@@ -129,54 +141,6 @@ class Design(elephant.local_.doc.Doc):
         if 'cost' in self.d:
             assert isinstance(self.d["cost"], (int, float))
             yield self.d["cost"]
-
-class DEPAssembly(Design):
-    def __init__(self, manager, e, d):
-        super(Assembly, self).__init__(manager, e, d)
-
-    def print_info(self, indent='', m0=None):
-        print(indent + f'{self["description"]}')
-        if m0 is not None:
-            print(indent + f'quantity: {m0["quantity"]}')
-            print(indent + f'consumed: {m0["consumed"]}')
-
-        for m in self.d['materials']:
-            part = self.manager.e_designs.get_content(m['part']['ref'], {'_id': m['part']['_id']})
-            part.print_info(indent + '  ', m)
-
-    def produce(self, user, manager, q):
-
-        purchased = []
-
-        for m in self.d['materials']:
-
-            part = manager.e_designs.get_content(m['part']['ref'], user, {'_id': m['part']['_id']})
-        
-            # check inventory
-
-            i = manager.get_inventory(m['part'])
-
-            d = m['quantity'] * q - i
-
-            if d > 0:
-                # insufficient inventory
-                
-                purchased1 = part.visit_manager_produce(user, manager, m['part'], d)
-
-                purchased += purchased1
-
-                #manager.purchase(m, d)
-
-                pass
-            else:
-                # sufficient inventory
-                pass
-
-            manager.consume(m)
-
-        manager.receive(user, self.freeze(), q)
-
-        return purchased
 
 class Engine(weaver.engine.EngineLocal):
 
