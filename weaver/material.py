@@ -9,11 +9,13 @@ class Material:
     @classmethod
     async def decode(cls, h, args):
 
-        # fix
-        if isinstance(args, dict):
-            args = [args["design"], args["quantity"]]
+        args = await h.decode(args)
 
-        return Material(*args)
+        # fix
+        #if isinstance(args, dict):
+        #    args = [args["design"], args["quantity"]]
+
+        return cls(*args)
 
     def __init__(self, design_ref, quantity):
 

@@ -5,6 +5,19 @@ import elephant.util
 import weaver.quantity.unit
 
 class Quantity:
+
+    @classmethod
+    async def decode(cls, h, args):
+
+        args = await h.decode(args)
+
+        # fix
+        #if isinstance(args, dict):
+        #    args = [args["design"], args["quantity"]]
+
+        return cls(*args)
+
+
     def __init__(self, num, unit=None):
        
 

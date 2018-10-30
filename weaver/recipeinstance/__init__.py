@@ -1,6 +1,7 @@
 import enum
 import logging
 
+import elephant.global_.doc
 import elephant.local_
 import weaver.engine
 
@@ -10,7 +11,7 @@ class Status(enum.Enum):
     PLANNED  = 0
     COMPLETE = 1
 
-class RecipeInstance(elephant.global_.File):
+class RecipeInstance(elephant.global_.doc.Doc):
     """
     recipe         - ref of recipe
     designinstance - id of designinstance that this was created to produce

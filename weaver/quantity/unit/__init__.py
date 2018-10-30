@@ -97,7 +97,8 @@ class Unit(BaseUnit):
 
     @classmethod
     async def decode(cls, h, args):
-        return Unit(*args)
+        args = await h.decode(args)
+        return cls(*args)
 
     def __init__(self, ref):
 
@@ -105,7 +106,10 @@ class Unit(BaseUnit):
         #if isinstance(ref, bson.objectid.ObjectId):
         #    ref = elephant.ref.DocRef(ref)
 
-        assert isinstance(ref, elephant.ref.DocRef)
+        if not isinstance(ref, elephant.ref.DocRef):
+            if __debug__: breakpoint()
+            raise TypeError()
+
         self.ref = ref
     
     def reduce(self):

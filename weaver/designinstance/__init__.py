@@ -49,7 +49,7 @@ class BehaviorRecipeInstance(Behavior):
         if not isinstance(self.doc.d["recipeinstance_for"], elephant.ref.DocRef): raise TypeError()
         #if not isinstance(self.doc.d["quantity"], weaver.quantity.Quantity): raise TypeError()
 
-class DesignInstance(elephant.global_.File):
+class DesignInstance(elephant.global_.doc.Doc):
     """
     types identified by fields present
 
