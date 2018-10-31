@@ -107,8 +107,7 @@ class Unit(BaseUnit):
         #    ref = elephant.ref.DocRef(ref)
 
         if not isinstance(ref, elephant.ref.DocRef):
-            if __debug__: breakpoint()
-            raise TypeError()
+            raise TypeError(f'expected DocRef but got {ref!r} {type(ref)}')
 
         self.ref = ref
     
