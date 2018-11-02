@@ -107,6 +107,49 @@ class Manager:
 
         raise Exception('insufficient part quantity')
 
+    async def _demand_0(self, user):
+        async for d0 in self.weaver.e_designinstances.find(user, {}):
+            yield d0, (await d0.quantity_demand(user))
+
+    async def demand(self, user):
+
+        def keyfunc(_):
+            # TODO this ignores ref
+            return _.d.d['_id']
+
+        class DemandHelper:
+            def __init__(self, di, d, q):
+                assert isinstance(q, weaver.quantity.Quantity)
+                self.di, self.d, self.q = di, d, q
+            
+        async def _func0(di, q):
+            d = await di.get_design(user)
+            return DemandHelper(di, d, q)
+
+        l = [await _func0(di, q) async for di, q in self._weaver_demand_0(user)]
+
+        for dh in l:
+            c = await dh.di.cost(user)
+            #print(f'  {dh.d.d["description"]:40} {dh.q: 8.2f} {c: 8.2f}')
+            print(f'  {dh.d.d["description"]:40} {dh.q!r} {c: 8.2f}')
+
+        l = sorted(l, key=keyfunc)
+
+        for k, g in itertools.groupby(l, key=keyfunc):
+            g = list(g)
+
+            d = g[0].d
+
+            s = functools.reduce(operator.add, [dh.q for dh in g])
+
+            if s.num == 0: continue
+
+            #print(f'  {d.d["description"]:40} {s: 8.2f}')
+            print(f'  {d.d["description"]:40} {s!r}')
+
+            yield d, s
+
+
 def shell(args):
     import pymongo
     import elephant.collection_local

@@ -1,3 +1,5 @@
+import itertools
+
 import bson
 
 import elephant.util
@@ -71,20 +73,28 @@ class ComposedUnit(BaseUnit):
     def __repr__(self):
         return f"ComposedUnit({self.numer}, {self.denom})"
 
+    def __str__(self):
+        N = " ".join(str(n) for n in self.numer)
+        if not self.denom: return N
+        D = " ".join(str(d) for d in self.denom)
+        return f'{N} / {D}'
+
     def reduce(self):
         N = list(self.numer)
         D = list(self.denom)
         
-        #print("reduce")
-        #print("N", N)
-        #print("D", D)
-
         while True:
             n = _find_match(N, D)
             if not n: break
             N.remove(n)
             D.remove(n)
         return (list(sorted(n for n in N)), list(sorted(d for d in D)))
+
+    async def get_unit(self, h, user):
+        
+        for u in itertools.chain(self.numer, self.denom):
+            if u is None: continue
+            await u.get_unit(h, user)
 
     async def __encode__(self, h, user, mode):
         u = simplify(self)
@@ -124,11 +134,20 @@ class Unit(BaseUnit):
     def __repr__(self):
         return f"Unit({self.ref!r})"
 
+    def __str__(self):
+        if hasattr(self, "doc"):
+            return self.doc.d["name"]
+        return repr(self)
+
+    async def get_unit(self, h, user):
+        self.doc = await h.weaver.e_units.find_one_by_ref(user, self.ref)
+        return self.doc 
+
     async def __encode__(self, h, user, mode):
         args = [self.ref]
 
         if mode == elephant.EncodeMode.CLIENT:
-            doc = await h.weaver.e_units.find_one_by_ref(user, self.ref)
+            doc = await self.get_unit(h, user)
             if doc is None:
                 raise RuntimeError('unit document not found')
             args.append(doc)

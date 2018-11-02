@@ -17,10 +17,8 @@ class Quantity:
 
         return cls(*args)
 
-
     def __init__(self, num, unit=None):
        
-
         # MIGRATE
         if isinstance(num, dict):
             a = dict(num)
@@ -30,7 +28,6 @@ class Quantity:
 
         if isinstance(unit, bson.objectid.ObjectId):
             unit = weaver.quantity.unit.Unit(unit)
-
 
         # validate
  
