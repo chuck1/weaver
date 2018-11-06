@@ -1,5 +1,7 @@
 import argparse
+import functools
 import itertools
+import operator
 
 import elephant.local_
 
