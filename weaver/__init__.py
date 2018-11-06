@@ -1,4 +1,5 @@
 import argparse
+import itertools
 
 import elephant.local_
 
@@ -108,7 +109,7 @@ class Manager:
         raise Exception('insufficient part quantity')
 
     async def _demand_0(self, user):
-        async for d0 in self.weaver.e_designinstances.find(user, {}):
+        async for d0 in self.e_designinstances.find(user, {}):
             yield d0, (await d0.quantity_demand(user))
 
     async def demand(self, user):
@@ -126,7 +127,7 @@ class Manager:
             d = await di.get_design(user)
             return DemandHelper(di, d, q)
 
-        l = [await _func0(di, q) async for di, q in self._weaver_demand_0(user)]
+        l = [await _func0(di, q) async for di, q in self._demand_0(user)]
 
         for dh in l:
             c = await dh.di.cost(user)
