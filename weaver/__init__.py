@@ -26,6 +26,60 @@ Designinstances are one of the following types
 
 """
 
+class DesignRef:
+    def __init__(self, ref, d):
+        self.ref = ref
+        self.d = d
+
+    async def ainit(self):
+        self.O = await self.d.quantity_onhand()
+        self.T = await self.d.quantity_onhand_threshold()
+        self.I = weaver.quantity.Quantity(0, self.d.get("unit", None))
+        self.D = weaver.quantity.Quantity(0, self.d.get("unit", None))
+        self.R = weaver.quantity.Quantity(0, self.d.get("unit", None))
+
+    def quantity_buy(self):
+        O = self.O # target inventory
+        T = self.T # threadhold
+        I = self.I # actual inventory
+        R = self.R # demand for recipeinstances
+        D = self.D # manual demand
+
+        b0 = R + D - I
+        b1 = O + R + D - I
+        b2 = b0
+
+        if b0.num > 0:
+            b2 = b1
+        else:
+            if b1.num > 0:
+                if -b0 <= T:
+                    b2 = b1
+ 
+        if b2.num < 0:
+            b2.num = 0
+
+        return b2
+
+    async def __encode__(self, *args):
+        return self
+
+class ShoppingHelper:
+    def __init__(self):
+        self.design_refs = []
+
+    async def get_design_ref(self, ref, d):
+        for dr in self.design_refs:
+            if dr.ref == ref:
+                return dr
+        dr = DesignRef(ref, d)
+        await dr.ainit()
+        self.design_refs.append(dr)
+        return dr
+
+
+
+
 class PurchaseLine:
     def __init__(self, part, q):
         self.part = part
@@ -151,6 +205,57 @@ class Manager:
             print(f'  {d.d["description"]:40} {s!r}')
 
             yield d, s
+
+    async def shopping(self, ws, user, body):
+
+        helper = ShoppingHelper()
+
+        async for d in self.e_designs._find():
+            ref = d.freeze()
+            dr = await helper.get_design_ref(ref, d)
+
+        # INVENTORY
+        async for di in self.e_designinstances._find({
+                "mode": weaver.designinstance.DesignInstanceMode.INVENTORY.value,
+                }):
+            
+            d = await di.get_design(user)
+
+            ref = di.d["design"]
+
+            dr = await helper.get_design_ref(ref, d)
+
+            dr.I += di.d["quantity"]
+
+        # RECIPEINSTANCE
+        async for di in self.e_designinstances._find({
+                "mode": weaver.designinstance.DesignInstanceMode.RECIPEINSTANCE.value,
+                }):
+            
+            d = await di.get_design(user)
+
+            ref = di.d["design"]
+
+            dr = await helper.get_design_ref(ref, d)
+
+            dr.R += await di.quantity_recipeinstance_for(user)
+
+        # DEMAND
+        async for di in self.e_designinstances._find({
+                "mode": weaver.designinstance.DesignInstanceMode.DEMAND.value,
+                }):
+            
+            d = await di.get_design(user)
+
+            ref = di.d["design"]
+
+            dr = await helper.get_design_ref(ref, d)
+
+            dr.D += di.d["quantity"]
+
+        for dr in helper.design_refs:
+            yield dr
+
 
 
 def shell(args):
