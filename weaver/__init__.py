@@ -2,6 +2,7 @@ import argparse
 import datetime
 import functools
 import itertools
+import logging
 import operator
 
 import elephant.local_
@@ -14,6 +15,8 @@ import weaver.recipeinstance
 import weaver.recipeinstance.query
 import weaver.designinstance
 import weaver.designinstance.query
+
+logger = logging.getLogger()
 
 """
 Designinstances
@@ -214,12 +217,12 @@ class Manager:
 
         helper = ShoppingHelper()
 
-        print(f'when = {when}')
+        logger.info(f'when = {when}')
 
         now = datetime.datetime.utcnow()
         when = when or datetime.datetime.utcnow()
 
-        print(f'when = {when}')
+        logger.info(f'when = {when}')
 
         async for d in self.e_designs._find():
             ref = d.freeze()

@@ -105,7 +105,7 @@ class Design(elephant.local_.doc.Doc):
             raise TypeError()
 
         d0 = {
-                'mode':     weaver.designinstance.DesignInstanceMode.DEMAND.value,
+                'mode':     weaver.designinstance.doc.DesignInstanceMode.DEMAND.value,
                 'design':   self.freeze(),
                 'quantity': quantity,
                 }
