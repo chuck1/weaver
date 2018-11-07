@@ -191,10 +191,10 @@ class Recipe(elephant.local_.doc.Doc):
 
 class Engine(weaver.engine.EngineLocal):
 
-    _doc_class = Recipe
-
     def __init__(self, manager, coll, e_queries):
         super().__init__(manager, coll, e_queries)
+        self._doc_class = Recipe
+
 
     def pipe0(self, user):
 

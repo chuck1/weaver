@@ -1,6 +1,6 @@
 import enum
 import logging
-
+import bson
 import elephant.global_.doc
 import elephant.local_
 import weaver.engine
@@ -43,28 +43,34 @@ class RecipeInstance(elephant.global_.doc.Doc):
 
         #logger.debug(f'recipe {d2.d["_elephant"]!r}')
 
+        assert isinstance(d2, weaver.recipe.Recipe)
+
         return d2
 
     async def get_designinstance(self, user):
         """
         get the designinstance that this was created to produce
         """
-        d3 = await self.e.manager.e_designinstances.find_one(
+        assert isinstance(self.d['designinstance'], elephant.ref.DocRef)
+
+        d3 = await self.e.manager.e_designinstances.find_one_by_ref(
                 user,
-               	{'_id': self.d['designinstance']})
+               	self.d['designinstance'],
+                )
         
         return d3
 
     async def is_planned(self, user):
         di = await self.get_designinstance(user)
         if di:
-            if di.d.get('recipeinstance', None) == self.d['_id']:
+            if di.d.get('recipeinstance', None) == self.freeze():
                 return True
             else:
-                logger.warning('RI type 1 reference doesnt match {0} != {1}'.format(
+                logger.error('RI type 1 reference doesnt match {0} != {1}'.format(
                         di.d.get('recipeinstance', None),
                         self.d['_id'],
                         ))
+                raise Exception()
                 return False
         
         if self.d['status'] == weaver.recipeinstance.Status.PLANNED:
@@ -97,7 +103,7 @@ class RecipeInstance(elephant.global_.doc.Doc):
                         user,
                         None,
                         {
-                            'mode':   weaver.designinstance.DesignInstanceMode.RECIPEINSTANCE.value,
+                            'mode':   weaver.designinstance.doc.DesignInstanceMode.RECIPEINSTANCE.value,
                             'design': m.design_ref,
                             'recipeinstance_for': self.freeze(),
                         })

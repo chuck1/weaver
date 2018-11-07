@@ -1,4 +1,5 @@
 import argparse
+import datetime
 import functools
 import itertools
 import operator
@@ -206,9 +207,19 @@ class Manager:
 
             yield d, s
 
-    async def shopping(self, ws, user, body):
+    async def shopping(self, ws, user, body, when=None, recipeinstance_before=None):
+        """
+        recipeinstance_before - if not None, only count recipeinstances that are scheduled before 
+        """
 
         helper = ShoppingHelper()
+
+        print(f'when = {when}')
+
+        now = datetime.datetime.utcnow()
+        when = when or datetime.datetime.utcnow()
+
+        print(f'when = {when}')
 
         async for d in self.e_designs._find():
             ref = d.freeze()
@@ -216,7 +227,7 @@ class Manager:
 
         # INVENTORY
         async for di in self.e_designinstances._find({
-                "mode": weaver.designinstance.DesignInstanceMode.INVENTORY.value,
+                "mode": weaver.designinstance.doc.DesignInstanceMode.INVENTORY.value,
                 }):
             
             d = await di.get_design(user)
@@ -228,10 +239,16 @@ class Manager:
             dr.I += di.d["quantity"]
 
         # RECIPEINSTANCE
+        # designinstances created as ingredients for a recipeinstance
         async for di in self.e_designinstances._find({
-                "mode": weaver.designinstance.DesignInstanceMode.RECIPEINSTANCE.value,
+                "mode": weaver.designinstance.doc.DesignInstanceMode.RECIPEINSTANCE.value,
                 }):
             
+            ri = await di.get_recipeinstance_for(user)
+
+            if recipeinstance_before is not None:
+                if ri.d.get("when", now) > recipeinstance_before: continue
+
             d = await di.get_design(user)
 
             ref = di.d["design"]
@@ -242,7 +259,7 @@ class Manager:
 
         # DEMAND
         async for di in self.e_designinstances._find({
-                "mode": weaver.designinstance.DesignInstanceMode.DEMAND.value,
+                "mode": weaver.designinstance.doc.DesignInstanceMode.DEMAND.value,
                 }):
             
             d = await di.get_design(user)
@@ -253,9 +270,23 @@ class Manager:
 
             dr.D += di.d["quantity"]
 
+        # ORDER
+        async for di in self.e_designinstances._find({
+                "mode": weaver.designinstance.doc.DesignInstanceMode.ORDER.value,
+                "arrival": {"$lte": when},
+                }):
+
+            d = await di.get_design(user)
+
+            ref = di.d["design"]
+
+            dr = await helper.get_design_ref(ref, d)
+
+            dr.I += di.d["quantity"]
+
+        # return
         for dr in helper.design_refs:
             yield dr
-
 
 
 def shell(args):
