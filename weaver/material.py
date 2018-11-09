@@ -38,7 +38,7 @@ class Material:
         self.quantity = quantity
   
     async def get_design(self, h, user):
-        o = await h.weaver.e_designs.find_one_by_id(user, self.design_ref["ref"], self.design_ref["id"])
+        o = await h.weaver.e_designs.find_one_by_id(user, self.design_ref.ref, self.design_ref._id)
         assert o is not None
         return o
 

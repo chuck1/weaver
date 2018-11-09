@@ -100,25 +100,20 @@ class Design(elephant.local_.doc.Doc):
 
         raise Exception("no conversion")
 
-    async def produce(self, user, quantity):
+    async def create_demand(self, user, quantity):
         if not isinstance(quantity, weaver.quantity.Quantity):
             raise TypeError()
 
-        d0 = {
+        d = {
                 'mode':     weaver.designinstance.doc.DesignInstanceMode.DEMAND.value,
                 'design':   self.freeze(),
                 'quantity': quantity,
                 }
 
-        d1 = await self.e.manager.e_designinstances.put(
-                user,
-                None,
-                d0,
-                )
+        di = await self.e.manager.e_designinstances.put(user, None, d)
 
-        return d1
-
-
+        return di
+ 
     async def cost(self, user, q):
         logger.info("cost")
 
