@@ -72,6 +72,10 @@ class Design(elephant.local_.doc.Doc):
         print("conversion")
         print(f"{u0!r}")
         print(f"{u1!r}")
+
+        if weaver.quantity.unit.unit_eq(u0, u1):
+            return weaver.quantity.Quantity(1)
+
         r0 = u0.reduce()
         r1 = u1.reduce()
         print(f"{u0!r}")
@@ -100,15 +104,15 @@ class Design(elephant.local_.doc.Doc):
 
         raise Exception("no conversion")
 
-    async def create_demand(self, user, quantity):
+    async def create_demand(self, user, quantity, d):
         if not isinstance(quantity, weaver.quantity.Quantity):
             raise TypeError()
 
-        d = {
+        d.update({
                 'mode':     weaver.designinstance.doc.DesignInstanceMode.DEMAND.value,
                 'design':   self.freeze(),
                 'quantity': quantity,
-                }
+                })
 
         di = await self.e.manager.e_designinstances.put(user, None, d)
 
