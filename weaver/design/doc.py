@@ -92,7 +92,7 @@ class Design(elephant.local_.doc.Doc):
             r = [c[0].reduce(), c[1].reduce()]
             print(f"try {r!r}")
             if r == c0:
-                return weaver.quantity.Quantity({"num": y, "unit": weaver.quantity.unit.ComposedUnit([u1], [u0])})
+                return weaver.quantity.Quantity(y, weaver.quantity.unit.ComposedUnit([u1], [u0]))
 
         print("looking for")
         print(f"    {c1}")
@@ -104,7 +104,11 @@ class Design(elephant.local_.doc.Doc):
 
         raise Exception("no conversion")
 
-    async def create_demand(self, user, quantity, d):
+    async def create_demand(self, user, quantity, d=dict()):
+        """
+        d - dict with additional data for the new designinstance
+        """
+
         if not isinstance(quantity, weaver.quantity.Quantity):
             raise TypeError()
 
