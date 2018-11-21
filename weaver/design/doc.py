@@ -3,6 +3,7 @@ import logging
 
 import elephant.local_
 import weaver.util
+import otter
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,9 @@ class Design(elephant.local_.doc.Doc):
 
         if 'cost' in self.d:
             assert isinstance(self.d["cost"], (int, float))
+
+        for tag in self.d.get("tags", []):
+            assert isinstance(tag, otter.subobjects.tag.Tag)
 
     def visit_manager_produce(self, user, manager, m, q):
         return manager.purchase(user, m, q)
