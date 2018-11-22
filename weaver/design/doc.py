@@ -39,6 +39,8 @@ class Design(elephant.local_.doc.Doc):
         for tag in self.d.get("tags", []):
             assert isinstance(tag, otter.subobjects.tag.Tag)
 
+        print(f'weaver design {self.d.get("description", "untitled")} {self.d["_temp"]["commits"][0].user} {self.d}')
+
     def visit_manager_produce(self, user, manager, m, q):
         return manager.purchase(user, m, q)
 

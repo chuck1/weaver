@@ -104,6 +104,10 @@ class DesignInstance(elephant.global_.doc.Doc):
     async def update_temp(self, user):
         await super().update_temp(user)
         
+
+        self.d["_temp"]["design"] = await self.get_design(user)
+
+
     async def quantity_recipeinstance_for(self, user):
 
         d = await self.get_design(user)
