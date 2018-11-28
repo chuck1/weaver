@@ -1,3 +1,4 @@
+import copy
 import datetime
 import enum
 import logging
@@ -72,8 +73,8 @@ class DesignInstance(elephant.global_.doc.Doc):
     'recipeinstance'     - a recipeinstance created to produce this
     'quantity_actual'    - actual quantity in inventory
     """
-    def __init__(self, e, d, _d):
-        super().__init__(e, d, _d)
+    def __init__(self, e, d, _d, **kwargs):
+        super().__init__(e, d, _d, **kwargs)
         self.d['_collection'] = 'weaver designinstances'
 
     def behavior(self):
@@ -286,5 +287,17 @@ class DesignInstance(elephant.global_.doc.Doc):
     async def to_array(self):
         d = dict(self.d)
         return d
+
+    def subobject(self):
+        o = copy.deepcopy(self)
+        o.is_subobject = True
+        if "design" in self.d["_temp"]:
+            del self.d["_temp"]["design"]
+        return o
+
+
+
+
+
 
 

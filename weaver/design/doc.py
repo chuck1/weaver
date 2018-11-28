@@ -24,7 +24,13 @@ class Design(elephant.local_.doc.Doc):
     async def update_temp(self, user):
         await super().update_temp(user)
         
-        #self.d["temp"]["unit"] =
+        self.d["_temp"]["designinstances"] = await self.temp_designinstances(user)
+
+    async def temp_designinstances(self, user):
+
+        c = self.e.h.weaver.e_designinstances.find(user, {"design": self.freeze()})
+
+        return [_.subobject() async for _ in c]
 
     async def check(self):
         await super().check()
