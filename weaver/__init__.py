@@ -36,7 +36,7 @@ class DesignRef:
         self.d = d
 
     async def ainit(self):
-        self.O = await self.d.quantity_onhand()
+        self.O = await self.d.quantity_target()
         self.T = await self.d.quantity_onhand_threshold()
         self.I = weaver.quantity.Quantity(0, self.d.get("unit", None))
         self.D = weaver.quantity.Quantity(0, self.d.get("unit", None))
