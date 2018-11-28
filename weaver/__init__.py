@@ -65,8 +65,13 @@ class DesignRef:
 
         return b2
 
-    async def __encode__(self, *args):
-        return self
+    async def __encode__(self, h, user, mode):
+        args = [
+		self.d,
+                self.quantity_buy(),
+                ]
+        args = await elephant.util.encode(h, user, mode, args)
+        return {"ShoppingItem": args}
 
 class ShoppingHelper:
     def __init__(self):
@@ -80,9 +85,6 @@ class ShoppingHelper:
         await dr.ainit()
         self.design_refs.append(dr)
         return dr
-
-
-
 
 class PurchaseLine:
     def __init__(self, part, q):
@@ -289,6 +291,7 @@ class Manager:
 
         # return
         for dr in helper.design_refs:
+            if dr.quantity_buy().num == 0: continue
             yield dr
 
 
