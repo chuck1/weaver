@@ -23,8 +23,6 @@ class Material:
         if isinstance(quantity, (int, float)):
             quantity = weaver.quantity.Quantity(quantity)
 
-        if isinstance(design_ref, dict):
-            design_ref = elephant.ref.DocRef(design_ref['id'], design_ref['ref'])
 
         # validate
         assert isinstance(design_ref, elephant.ref.DocRef)

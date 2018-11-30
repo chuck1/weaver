@@ -73,8 +73,8 @@ class DesignInstance(elephant.global_.doc.Doc):
     'recipeinstance'     - a recipeinstance created to produce this
     'quantity_actual'    - actual quantity in inventory
     """
-    def __init__(self, e, d, _d, **kwargs):
-        super().__init__(e, d, _d, **kwargs)
+    def __init__(self, e, d, _d, *args, **kwargs):
+        super().__init__(e, d, _d, *args, **kwargs)
         self.d['_collection'] = 'weaver designinstances'
 
     def behavior(self):

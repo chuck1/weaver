@@ -43,7 +43,8 @@ class Design(elephant.local_.doc.Doc):
             assert isinstance(self.d["cost"], (int, float))
 
         for tag in self.d.get("tags", []):
-            assert isinstance(tag, otter.subobjects.tag.Tag)
+            if not isinstance(tag, otter.subobjects.tag.Tag):
+                raise otter.CheckError(f"expected subobjects.tag.Tag got {tag!r} {type(tag)}")
 
         print(f'weaver design {self.d.get("description", "untitled")} {self.d["_temp"]["commits"][0].user} {self.d}')
 

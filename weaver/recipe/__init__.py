@@ -36,33 +36,16 @@ class Recipe(elephant.local_.doc.Doc):
         super().__init__(e, d, _d)
         self.d["_collection"] = "weaver recipes"
 
-    async def update_temp_material(self, user, material):
-        if not material: return material
-
-        assert isinstance(material, weaver.material.Material)
-
-        ref = material.design_ref.ref
-
-        d = await self.e.h.weaver.e_designs.find_one(user, ref, {'_id': material.design_ref._id})
-
-        m = weaver.material.Material(d.freeze(), material.quantity)
-
-        return m
-
     async def temp_materials(self, user):
-
         for m in self.d['materials']:
-
-            yield await self.update_temp_material(user, m)
+            if not isinstance(m, weaver.material.Material):
+                raise TypeError(f'expected Material got {type(m)} {m!r}')
+            yield m
 
     async def check(self):
         for m in self.d.get('materials', []):
-            assert isinstance(m, weaver.material.Material)
-            #if 'quantity' not in m:
-            #    m['quantity'] = weaver.quantity.Quantity(0)
-            #else:
-            #    if not ((m['quantity'] is None) or isinstance(m['quantity'], weaver.quantity.Quantity)):
-            #        raise Exception(f'quantity should be Quantity object, not {type(m["quantity"])} {m["quantity"]}')
+            if not isinstance(m, weaver.material.Material):
+                raise TypeError(f'expected Material got {type(m)} {m!r}')
 
     async def update_temp(self, user):
         
