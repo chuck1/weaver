@@ -48,22 +48,7 @@ class Engine(weaver.engine.EngineGlobal):
         return d_0
 
     def pipe0(self, user):
-
         yield from super().pipe0(user)
-
-        # design
-        yield {'$addFields': {'design_id': '$design.id'}}
-        yield {'$lookup': {
-                'from': 'weaver.designs.files',
-                'let': {'design_id': '$design_id'},
-                'pipeline': [
-                    {'$match': {'$expr': {'$eq': ['$_id', '$$design_id']}}},
-                    ],
-                'as': '_design',
-                }}
-        yield {'$addFields': {
-                '_design': {'$arrayElemAt': ['$_design', 0]},
-                }}
 
 
 

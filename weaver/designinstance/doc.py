@@ -104,10 +104,8 @@ class DesignInstance(elephant.global_.doc.Doc):
 
     async def update_temp(self, user):
         await super().update_temp(user)
-        
 
-        self.d["_temp"]["design"] = await self.get_design(user)
-
+        self.d["_temp"]["design"] = await self.get_design(user, temp=False)
 
     async def quantity_recipeinstance_for(self, user):
 
@@ -235,7 +233,11 @@ class DesignInstance(elephant.global_.doc.Doc):
   
         return d0
 
-    async def get_design(self, user):
+    async def get_design(self, user, temp=True):
+        """
+        temp (bool) - include "_temp" field in returned object
+        """
+
         #if 'design' not in self.d: return
 
         logger.debug((
@@ -247,7 +249,9 @@ class DesignInstance(elephant.global_.doc.Doc):
         d0 = await self.e.manager.e_designs.find_one(
                 user,
                 self.d['design'].ref,
-                {"_id": self.d['design']._id})
+                {"_id": self.d['design']._id},
+                temp=temp,
+                )
 
         assert d0 is not None
 
