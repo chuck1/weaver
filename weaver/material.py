@@ -25,7 +25,8 @@ class Material:
 
 
         # validate
-        assert isinstance(design_ref, elephant.ref.DocRef)
+        if not isinstance(design_ref, elephant.ref.DocRef):
+            raise Exception(f'expected DocRef not {design_ref!r} {type(design_ref)}')
         
         if not isinstance(quantity, weaver.quantity.Quantity):
             raise Exception(f'invalid type for \'quantity\' argument: {type(quantity)}')
