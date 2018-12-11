@@ -17,6 +17,12 @@ class Quantity:
 
         return cls(*args)
 
+    async def __encode__(self, h, user, mode):
+        args = [self.num, self.unit]
+        args = await elephant.util.encode(h, user, mode, args)
+        return {'Quantity': args}
+
+
     def __init__(self, num, unit=None):
        
         # MIGRATE
@@ -102,11 +108,6 @@ class Quantity:
         if not (r0 == r1):
             raise Exception(f"Incompatible units {r0!r} and {r1!r}")
         return self.num <= other.num
-
-    async def __encode__(self, h, user, mode):
-        args = [self.num, self.unit]
-        args = await elephant.util.encode(h, user, mode, args)
-        return {'Quantity': args}
 
 
 
