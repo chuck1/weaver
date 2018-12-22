@@ -16,7 +16,7 @@ import weaver.recipeinstance.query
 import weaver.designinstance
 import weaver.designinstance.query
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 """
 Designinstances
@@ -48,6 +48,14 @@ class DesignRef:
         I = self.I # actual inventory
         R = self.R # demand for recipeinstances
         D = self.D # manual demand
+
+        logger.info(f'description = {self.d.d.get("description")}')
+        logger.info(f'unit        = {self.d.d.get("unit")}')
+        logger.info(f"O = {O}")
+        logger.info(f"T = {T}")
+        logger.info(f"I = {I}")
+        logger.info(f"R = {R}")
+        logger.info(f"D = {D}")
 
         b0 = R + D - I
         b1 = O + R + D - I
