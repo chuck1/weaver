@@ -62,14 +62,22 @@ class DesignRef:
         b2 = b0
 
         if b0.num > 0:
+            # must buy to meet demand
             b2 = b1
         else:
             if b1.num > 0:
-                if -b0 <= T:
+                # would buy to meet target
+                if T is None:
+                    # no threshold, buy
+                    b2 = b1
+                elif -b0 <= T:
+                    # inventory minus demand is less than threshold, buy
                     b2 = b1
  
         if b2.num < 0:
             b2.num = 0
+
+        logger.info(f"shop = {b2}")
 
         return b2
 

@@ -14,7 +14,9 @@ class Design(elephant.local_.doc.Doc):
     'unit'           - default unit
     'conversions'   - conversions between units of different fundamental measurement
     'target'        - desired onhand quantity. used for automaticly adding to shopping list
-    'onhand_thresh' - threshold for purchase quantity when buying to meet onhand quantity
+    'onhand_thresh' - a quantity defined as follows:
+                      when buying only to meet target, only buy if inventory minus demand is LESS than threshold
+                      a threshold of zero would mean that you would only buy just to meet target if inventory was zero
     """
 
     def __init__(self, e, d, _d, is_subobject=False):
@@ -68,7 +70,8 @@ class Design(elephant.local_.doc.Doc):
         return self.d.get("target", weaver.quantity.Quantity(0, self.d.get("unit", None)))
 
     async def quantity_onhand_threshold(self):
-        return self.d.get("onhand_threshold", weaver.quantity.Quantity(0, self.d.get("unit", None)))
+        #return self.d.get("onhand_threshold", weaver.quantity.Quantity(0, self.d.get("unit", None)))
+        return self.d.get("onhand_threshold")
 
     async def list_recipes_negative(self, user):
         query = {
