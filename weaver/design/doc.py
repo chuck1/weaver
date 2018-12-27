@@ -46,7 +46,14 @@ class Design(elephant.local_.doc.Doc):
             if not isinstance(tag, otter.subobjects.tag.Tag):
                 raise otter.CheckError(f"expected subobjects.tag.Tag got {tag!r} {type(tag)}")
 
-        print(f'weaver design {self.d.get("description", "untitled")} {self.d["_temp"]["commits"][0].user} {self.d}')
+        logger.warning(
+            f'weaver design {self.d.get("description", "untitled")} {self.d["_temp"]["commits"][0].user} {self.d}')
+
+        if "target" in self.d:
+            logger.warning("has target")
+            await self.conversion(self.d["target"].unit, self.d.get("unit"))
+
+        # target and unit compatibility
 
     def visit_manager_produce(self, user, manager, m, q):
         return manager.purchase(user, m, q)

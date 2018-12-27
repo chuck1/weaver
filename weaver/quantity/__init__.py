@@ -51,9 +51,6 @@ class Quantity:
 
     def __add__(self, other):
         assert isinstance(other, Quantity)
-        #r0 = self.unit.reduce()
-        #r1 = other.unit.reduce()
-        #if not (r0 == r1):
         if not weaver.quantity.unit.unit_eq(self.unit, other.unit):
             raise Exception(f"Incompatible units {self.unit!r} and {other.unit!r}")
             #raise Exception(f"Incompatible units {self.unit!r} and {other.unit!r}")
@@ -61,9 +58,6 @@ class Quantity:
 
     def __sub__(self, other):
         assert isinstance(other, Quantity)
-        #r0 = self.unit.reduce()
-        #r1 = other.unit.reduce()
-        #if not (r0 == r1):
         if not weaver.quantity.unit.unit_eq(self.unit, other.unit):
             raise Exception(f"Incompatible units {r0!r} and {r1!r}")
             #raise Exception(f"Incompatible units {self.unit!r} and {other.unit!r}")
@@ -86,26 +80,19 @@ class Quantity:
 
     def __eq__(self, other):
         assert isinstance(other, Quantity)
-        #r0 = self.unit.reduce()
-        #r1 = other.unit.reduce()
-        #if not (r0 == r1):
         if not weaver.quantity.unit.unit_eq(self.unit, other.unit):
             raise Exception(f"Incompatible units {self.unit!r} and {other.unit!r}")
         return self.num == other.num
 
     def __lt__(self, other):
         assert isinstance(other, Quantity)
-        r0 = self.unit.reduce()
-        r1 = other.unit.reduce()
-        if not (r0 == r1):
+        if not weaver.quantity.unit.unit_eq(self.unit, other.unit):
             raise Exception(f"Incompatible units {r0!r} and {r1!r}")
         return self.num < other.num
 
     def __le__(self, other):
         assert isinstance(other, Quantity)
-        r0 = self.unit.reduce()
-        r1 = other.unit.reduce()
-        if not (r0 == r1):
+        if not weaver.quantity.unit.unit_eq(self.unit, other.unit):
             raise Exception(f"Incompatible units {r0!r} and {r1!r}")
         return self.num <= other.num
 
