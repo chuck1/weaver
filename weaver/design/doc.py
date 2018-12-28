@@ -144,14 +144,14 @@ class Design(elephant.local_.doc.Doc):
             logger.info(f"try {c!r}")
             if not weaver.quantity.unit.unit_eq(c.unit_0, u0): continue
             if not weaver.quantity.unit.unit_eq(c.unit_1, u1): continue
-            return weaver.quantity.Quantity(y, weaver.quantity.unit.ComposedUnit([u1], [u0]))
+            return weaver.quantity.Quantity(c.f, weaver.quantity.unit.ComposedUnit([u1], [u0]))
 
         logger.info("looking for")
         for c in self.d.get("conversions", []):
             logger.info(f"try {c!r}")
             if not weaver.quantity.unit.unit_eq(c.unit_0, u1): continue
             if not weaver.quantity.unit.unit_eq(c.unit_1, u0): continue
-            return weaver.quantity.Quantity(1/y, weaver.quantity.unit.ComposedUnit([u1], [u0]))
+            return weaver.quantity.Quantity(1/c.f, weaver.quantity.unit.ComposedUnit([u1], [u0]))
 
         raise Exception(f'no conversion for {self.d.get("description")!r} from {u0!s} to {u1!s}')
 

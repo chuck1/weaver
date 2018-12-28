@@ -113,6 +113,9 @@ class DesignInstance(elephant.global_.doc.Doc):
 
         ri = await self.get_recipeinstance_for(user)
 
+        if ri is None:
+            return weaver.quantity.Quantity(0, d.d.get("unit"))
+           
         if not (await ri.is_planned(user)):
             logger.info('DI demand type 1 not planned')
             return weaver.quantity.Quantity(0, d.d.get("unit"))
@@ -219,8 +222,10 @@ class DesignInstance(elephant.global_.doc.Doc):
                 self.d['recipeinstance_for'],
                 )
 
-        assert d0 is not None
-  
+        if d0 is None:
+            # recipeinstance might have been deleted
+            return None
+
         return d0
 
     async def get_recipeinstance(self, user):
