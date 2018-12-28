@@ -7,12 +7,42 @@ import otter
 
 logger = logging.getLogger(__name__)
 
+class Conversion:
+
+    @classmethod
+    async def decode(cls, h, args):
+        args = await h.decode(args)
+        return cls(*args)
+
+    def __init__(self, unit_0, unit_1, f):
+
+        self.unit_0 = unit_0
+        self.unit_1 = unit_1
+        self.f = f
+ 
+        if not isinstance(unit_0, weaver.quantity.unit.BaseUnit):
+            raise Exception()
+
+        if not isinstance(unit_1, weaver.quantity.unit.BaseUnit):
+            raise Exception()
+
+        if not isinstance(f, (int, float)):
+            raise Exception(f'expected float not {type(f)} {f!r}')
+   
+    async def __encode__(self, h, user, mode):
+        args = [self.unit_0, self.unit_1, self.f]
+
+        return {"Conversion": await elephant.util.encode(h, user, mode, args)}
+
+
+
 class Design(elephant.local_.doc.Doc):
     """
     fields
 
     'unit'           - default unit
-    'conversions'   - conversions between units of different fundamental measurement
+    'conversions'   - a list of Conversion objects
+                      conversions between units of different fundamental measurement
     'target'        - desired onhand quantity. used for automaticly adding to shopping list
     'onhand_thresh' - a quantity defined as follows:
                       when buying only to meet target, only buy if inventory minus demand is LESS than threshold
@@ -58,6 +88,10 @@ class Design(elephant.local_.doc.Doc):
             logger.warning("has target")
             await self.conversion(self.d["target"].unit, self.d.get("unit"))
 
+        for c in self.d.get("conversions", []):
+            if not isinstance(c, Conversion):
+                raise Exception()
+
         # target and unit compatibility
 
     def visit_manager_produce(self, user, manager, m, q):
@@ -95,40 +129,31 @@ class Design(elephant.local_.doc.Doc):
         conversion factor from u0 to u1
         x (u1) = y (u10 * c (u1 / u0)
         """
-        print("conversion")
-        print(f"{u0!r}")
-        print(f"{u1!r}")
+        logger.info("conversion")
+        logger.info(f"{u0!r}")
+        logger.info(f"{u1!r}")
 
         if weaver.quantity.unit.unit_eq(u0, u1):
             return weaver.quantity.Quantity(1)
 
-        r0 = u0.reduce()
-        r1 = u1.reduce()
-        print(f"{u0!r}")
-        print(f"{u1!r}")
-        c0 = [r0, r1]
-        c1 = [r1, r0]
+        logger.info(f"{u0!r}")
+        logger.info(f"{u1!r}")
+        
+        logger.info("looking for")
+        for c in self.d.get("conversions", []):
+            logger.info(f"try {c!r}")
+            if not weaver.quantity.unit.unit_eq(c.unit_0, u0): continue
+            if not weaver.quantity.unit.unit_eq(c.unit_1, u1): continue
+            return weaver.quantity.Quantity(y, weaver.quantity.unit.ComposedUnit([u1], [u0]))
 
-        if r0 == r1:
-            return weaver.quantity.Quantity(1)
+        logger.info("looking for")
+        for c in self.d.get("conversions", []):
+            logger.info(f"try {c!r}")
+            if not weaver.quantity.unit.unit_eq(c.unit_0, u1): continue
+            if not weaver.quantity.unit.unit_eq(c.unit_1, u0): continue
+            return weaver.quantity.Quantity(1/y, weaver.quantity.unit.ComposedUnit([u1], [u0]))
 
-        print("looking for")
-        print(f"    {c0}")
-        for c, y in self.d.get("conversions", []):
-            r = [c[0].reduce(), c[1].reduce()]
-            print(f"try {r!r}")
-            if r == c0:
-                return weaver.quantity.Quantity(y, weaver.quantity.unit.ComposedUnit([u1], [u0]))
-
-        print("looking for")
-        print(f"    {c1}")
-        for c, y in self.d.get("conversions", []):
-            r = [c[0].reduce(), c[1].reduce()]
-            print(f"try {r!r} {r == c1}")
-            if r == c1:
-                return weaver.quantity.Quantity(1/y, weaver.quantity.unit.ComposedUnit([u1], [u0]))
-
-        raise Exception("no conversion")
+        raise Exception(f'no conversion for {self.d.get("description")!r} from {u0!s} to {u1!s}')
 
     async def create_demand(self, user, quantity, d=dict()):
         """

@@ -126,16 +126,19 @@ class DesignInstance(elephant.global_.doc.Doc):
         q = q_r * q_m
 
         u0 = d.d.get("unit", None)
+
+        # convert to the design units
+        q = q * (await d.conversion(q.unit, u0))
+
         u1 = q.unit
 
-        pprint.pprint(d.d)
-
-        print("u0", u0)
-        print("u1", u1)
+        logger.info("u0", u0)
+        logger.info("u1", u1)
 
         assert (u1 is None) or isinstance(u1, weaver.quantity.unit.BaseUnit)
 
-        assert weaver.quantity.unit.unit_eq(u0, u1)
+        if not weaver.quantity.unit.unit_eq(u0, u1):
+            raise Exception(f'design unit ({u0!s}) does not equal ingredient unit ({u1!s})')
 
         return q        
 
