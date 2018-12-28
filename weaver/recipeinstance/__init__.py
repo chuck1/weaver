@@ -18,6 +18,10 @@ class RecipeInstance(elephant.global_.doc.Doc):
     """
     def __init__(self, e, d, _d):
         super().__init__(e, d, _d)
+        self.d["_collection"] = "weaver recipeinstances"
+
+    async def check(self):
+        await super().check()
 
     async def update_temp(self, user):
         await super().update_temp(user)
@@ -51,6 +55,9 @@ class RecipeInstance(elephant.global_.doc.Doc):
         """
         get the designinstance that this was created to produce
         """
+
+        if 'designinstance' not in self.d: return
+
         assert isinstance(self.d['designinstance'], elephant.ref.DocRef)
 
         d3 = await self.e.manager.e_designinstances.find_one_by_ref(
@@ -73,7 +80,9 @@ class RecipeInstance(elephant.global_.doc.Doc):
                 raise Exception()
                 return False
         
-        if self.d['status'] == weaver.recipeinstance.Status.PLANNED:
+
+
+        if Status(self.d['status']) == weaver.recipeinstance.Status.PLANNED:
             return True
 
         return False
@@ -111,6 +120,9 @@ class RecipeInstance(elephant.global_.doc.Doc):
             yield d3
 
     async def quantity(self, user):
+
+        if "quantity" in self.d:
+            return self.d["quantity"]
         
         r = await self.get_recipe(user)
    
@@ -124,8 +136,8 @@ class RecipeInstance(elephant.global_.doc.Doc):
   
         q2 = -q0 / q1 * (await d.conversion(q0.unit, q1.unit))
 
-        if not (q2.unit.reduce() == ([], [])):
-            logger.error(repr(q2.unit.reduce()))
+        if not weaver.quantity.unit.unit_eq(q2.unit, None):
+            logger.error(repr(q2.unit))
             raise Exception("recipeinstance quantity should have no units")
 
         return q2

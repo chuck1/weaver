@@ -115,7 +115,6 @@ class DesignInstance(elephant.global_.doc.Doc):
 
         if not (await ri.is_planned(user)):
             logger.info('DI demand type 1 not planned')
-            print('DI demand type 1 not planned')
             return weaver.quantity.Quantity(0, d.d.get("unit"))
 
         r  = await ri.get_recipe(user)
@@ -263,10 +262,9 @@ class DesignInstance(elephant.global_.doc.Doc):
 
     async def set_recipe(self, user, ref_recipe):
 
-        d1 = await self.e.manager.e_recipes.find_one(
+        d1 = await self.e.manager.e_recipes.find_one_by_ref(
                 user,
-                ref_recipe.ref,
-                {'_id': ref_recipe._id},
+                ref_recipe,
                 )
         
         logger.debug(f'recipe: {d1!r}')

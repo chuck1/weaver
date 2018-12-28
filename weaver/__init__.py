@@ -232,6 +232,12 @@ class Manager:
         """
         recipeinstance_before - if not None, only count recipeinstances that are scheduled before 
         """
+ 
+        # check all recipeinstances. this makes sure that all the designinstances have been
+        # generated for all recipeinstances
+        async for ri in self.e_recipeinstances.find(user, {}):
+            async for _ in ri.get_designinstances(user):
+                pass
 
         helper = ShoppingHelper()
 
@@ -261,10 +267,13 @@ class Manager:
 
         # RECIPEINSTANCE
         # designinstances created as ingredients for a recipeinstance
+        logger.info("designinstance created as ingredients for a recipeinstance")
+
         async for di in self.e_designinstances._find({
                 "mode": weaver.designinstance.doc.DesignInstanceMode.RECIPEINSTANCE.value,
                 }):
-            
+
+           
             ri = await di.get_recipeinstance_for(user)
 
             if recipeinstance_before is not None:
@@ -273,6 +282,8 @@ class Manager:
             d = await di.get_design(user)
 
             ref = di.d["design"]
+
+            logger.info(f'    {d.d.get("description")}')
 
             dr = await helper.get_design_ref(ref, d)
 

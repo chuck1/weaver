@@ -80,6 +80,7 @@ class Recipe(elephant.local_.doc.Doc):
             yield m["design"]
 
     def quantity(self, d):
+        # how much of design d does this recipe produce/consume
         
         logger.debug((
                 f'recipe get quantity for design '
