@@ -36,7 +36,9 @@ class DesignRef:
         self.d = d
 
     async def ainit(self):
-        self.O = await self.d.quantity_target()
+        # dont add target here because we could end up with multipe versions of a design, each with a target
+        self.O = weaver.quantity.Quantity(0, self.d.get("unit", None))
+
         self.T = await self.d.quantity_onhand_threshold()
         self.I = weaver.quantity.Quantity(0, self.d.get("unit", None))
         self.D = weaver.quantity.Quantity(0, self.d.get("unit", None))
@@ -315,6 +317,13 @@ class Manager:
             dr = await helper.get_design_ref(ref, d)
 
             dr.I += di.d["quantity"]
+
+	# Target
+        async for d in self.e_designs._find({}):
+
+            dr = await helper.get_design_ref(d.freeze(), d)
+            
+            dr.O += await d.quantity_target()
 
         # return
         for dr in helper.design_refs:

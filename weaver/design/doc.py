@@ -44,9 +44,9 @@ class Design(elephant.local_.doc.Doc):
     'conversions'   - a list of Conversion objects
                       conversions between units of different fundamental measurement
     'target'        - desired onhand quantity. used for automaticly adding to shopping list
-    'onhand_thresh' - a quantity defined as follows:
-                      when buying only to meet target, only buy if inventory minus demand is LESS than threshold
-                      a threshold of zero would mean that you would only buy just to meet target if inventory was zero
+    'onhand_threshold' - a quantity defined as follows:
+                         when buying only to meet target, only buy if inventory minus demand is LESS than threshold
+                         a threshold of zero would mean that you would only buy just to meet target if inventory was zero
     "inventory_quantity" - when creating an inventory instance, force the quantity to be equal to this quantity
                            this is used for tracking, so that individual pieces that should be handled individually
                            get their own record and therefore their own id_1
