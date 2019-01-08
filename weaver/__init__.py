@@ -86,6 +86,7 @@ class DesignRef:
     async def __encode__(self, h, user, mode):
         args = [
 		self.d,
+                self.I,
                 self.quantity_buy(),
                 ]
         args = await elephant.util.encode(h, user, mode, args)
@@ -230,7 +231,7 @@ class Manager:
 
             yield d, s
 
-    async def shopping(self, ws, user, body, when=None, recipeinstance_before=None):
+    async def shopping(self, ws, user, body, when=None, recipeinstance_before=None, criteria=None):
         """
         recipeinstance_before - if not None, only count recipeinstances that are scheduled before 
         """
@@ -259,11 +260,7 @@ class Manager:
                 "mode": weaver.designinstance.doc.DesignInstanceMode.INVENTORY.value,
                 }):
             
-            d = await di.get_design(user)
-
-            ref = di.d["design"]
-
-            dr = await helper.get_design_ref(ref, d)
+            dr = await helper.get_design_ref(di.d["design"], await di.get_design(user))
 
             dr.I += di.d["quantity"]
 
@@ -275,7 +272,6 @@ class Manager:
                 "mode": weaver.designinstance.doc.DesignInstanceMode.RECIPEINSTANCE.value,
                 }):
 
-           
             ri = await di.get_recipeinstance_for(user)
 
             if recipeinstance_before is not None:
@@ -283,11 +279,7 @@ class Manager:
 
             d = await di.get_design(user)
 
-            ref = di.d["design"]
-
-            logger.info(f'    {d.d.get("description")}')
-
-            dr = await helper.get_design_ref(ref, d)
+            dr = await helper.get_design_ref(di.d["design"], d)
 
             dr.R += await di.quantity_recipeinstance_for(user)
 
@@ -298,9 +290,7 @@ class Manager:
             
             d = await di.get_design(user)
 
-            ref = di.d["design"]
-
-            dr = await helper.get_design_ref(ref, d)
+            dr = await helper.get_design_ref(di.d["design"], d)
 
             dr.D += di.d["quantity"]
 
@@ -327,7 +317,10 @@ class Manager:
 
         # return
         for dr in helper.design_refs:
-            if dr.quantity_buy().num == 0: continue
+            if criteria is not None:
+                b = eval(criteria)
+                #if dr.quantity_buy().num == 0: continue
+                if b: continue
             yield dr
 
 
