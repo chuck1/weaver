@@ -1,3 +1,5 @@
+import datetime
+
 import elephant
 import weaver.quantity
 
@@ -25,21 +27,25 @@ class Behavior:
 
 class BehaviorInventory(Behavior):
 
-    def __init__(self, quantity):
+    def __init__(self, quantity, expires):
         if not isinstance(quantity, weaver.quantity.Quantity):
+            raise TypeError()
+
+        if not ((expires is None) or isinstance(expires, datetime.datetime)):
             raise TypeError()
         
         self.quantity = quantity
+        self.expires = expires
 
     async def quantity_inventory(self, user):
         return self.quantity
 
     async def __encode__(self, h, user, mode):
         if mode == elephant.EncodeMode.DATABASE:
-            args = [self.quantity]
+            args = [self.quantity, self.expires]
 
         elif mode == elephant.EncodeMode.CLIENT:
-            args = [self.quantity]
+            args = [self.quantity, self.expires]
 
         return {'WeaverDesigninstanceBehaviorInventory': await elephant.util.encode(h, user, mode, args)}
 
@@ -96,8 +102,6 @@ class BehaviorRecipeinstance(Behavior):
         self.recipeinstance_for = recipeinstance_for
 
     async def quantity_recipeinstance_for(self, user, recipeinstance_before):
-
-        
 
         ri = await self.doc.get_recipeinstance_for(user)
 
