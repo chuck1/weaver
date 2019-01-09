@@ -255,58 +255,40 @@ class Manager:
             ref = d.freeze()
             dr = await helper.get_design_ref(ref, d)
 
-        # INVENTORY
-        async for di in self.e_designinstances._find({
-                "mode": weaver.designinstance.doc.DesignInstanceMode.INVENTORY.value,
-                }):
-            
-            dr = await helper.get_design_ref(di.d["design"], await di.get_design(user))
+        ###############
 
-            dr.I += di.d["quantity"]
+        async for di in self.e_designinstances._find({}):
 
-        # RECIPEINSTANCE
-        # designinstances created as ingredients for a recipeinstance
-        logger.info("designinstance created as ingredients for a recipeinstance")
-
-        async for di in self.e_designinstances._find({
-                "mode": weaver.designinstance.doc.DesignInstanceMode.RECIPEINSTANCE.value,
-                }):
-
-            ri = await di.get_recipeinstance_for(user)
-
-            if recipeinstance_before is not None:
-                if ri.d.get("when", now) > recipeinstance_before: continue
+            di.init1()
 
             d = await di.get_design(user)
-
             dr = await helper.get_design_ref(di.d["design"], d)
 
-            dr.R += await di.quantity_recipeinstance_for(user)
+            # INVENTORY
 
-        # DEMAND
-        async for di in self.e_designinstances._find({
-                "mode": weaver.designinstance.doc.DesignInstanceMode.DEMAND.value,
-                }):
-            
-            d = await di.get_design(user)
+            y = await di.d["behavior"].quantity_inventory(user)
 
-            dr = await helper.get_design_ref(di.d["design"], d)
+            if y is not None: dr.I += y
+ 
+            # RECIPEINSTANCE
 
-            dr.D += di.d["quantity"]
+            y = await di.d["behavior"].quantity_recipeinstance_for(user, recipeinstance_before)
 
-        # ORDER
-        async for di in self.e_designinstances._find({
-                "mode": weaver.designinstance.doc.DesignInstanceMode.ORDER.value,
-                "arrival": {"$lte": when},
-                }):
+            if y is not None: dr.R += y
+ 
+            # INVENTORY
 
-            d = await di.get_design(user)
+            y = await di.d["behavior"].quantity_demand(user)
 
-            ref = di.d["design"]
+            if y is not None:
+                dr.D += y
+ 
+            # ORDER
 
-            dr = await helper.get_design_ref(ref, d)
-
-            dr.I += di.d["quantity"]
+            y = await di.d["behavior"].quantity_order(user, when)
+ 
+            if y is not None:
+                dr.I += y
 
 	# Target
         async for d in self.e_designs._find({}):

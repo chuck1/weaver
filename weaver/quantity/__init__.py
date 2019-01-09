@@ -49,6 +49,9 @@ class Quantity:
     def __repr__(self):
         return f"Quantity({self.num!r}, {self.unit!r})"
 
+    def __str__(self):
+        return f'{self.num} {self.unit!s}'
+
     def __add__(self, other):
         assert isinstance(other, Quantity)
         if not weaver.quantity.unit.unit_eq(self.unit, other.unit):

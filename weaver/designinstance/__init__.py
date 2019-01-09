@@ -18,9 +18,9 @@ class Engine(weaver.engine.EngineGlobal):
         design = await self.manager.e_designs.get_test_object(user)
 
         b1 = {
-            "mode":     weaver.designinstance.doc.DesignInstanceMode.INVENTORY.value,
             "design":   design.freeze(),
-            "quantity": weaver.quantity.Quantity(1, design.d.get("unit")),
+            "behavior": weaver.designinstance.doc.behavior.BehaviorInventory(
+                weaver.quantity.Quantity(1, design.d.get("unit"))),
             }
 
         b1.update(b0)

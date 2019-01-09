@@ -3,65 +3,24 @@ import datetime
 import enum
 import logging
 import pprint
+
 import pymongo
+
 import elephant.local_
 import weaver.recipeinstance
 
 logger = logging.getLogger(__name__)
 
-class DesignInstanceMode(enum.Enum):
     # created to represent actual inventory
-    INVENTORY      = 0
+    #INVENTORY      = 0
     # created as ingredient for recipeinstance
-    RECIPEINSTANCE = 1
+    #RECIPEINSTANCE = 1
     # created to create demand without a recipeinstance or an on-hand quantity
-    DEMAND         = 2
+    #DEMAND         = 2
     # design has been ordered and will arrive and be added to inventory in the future
     # should have an 'arrival' field
-    ORDER          = 3
+    #ORDER          = 3
 
-class Behavior:
-    def __init__(self, doc):
-        self.doc = doc
-
-    async def quantity_inventory(self, user):
-        raise NotImplementedError()
-
-class BehaviorInventory(Behavior):
-
-    async def quantity_inventory(self, user):
-        return self.doc.d["quantity"]
-
-    async def check(self):
-        if not isinstance(self.doc.d["design"], elephant.ref.DocRef): raise TypeError()
-        if not isinstance(self.doc.d["quantity"], weaver.quantity.Quantity): raise TypeError()
-
-class BehaviorDemand(Behavior):
-
-    async def quantity_inventory(self, user):
-        raise NotImplementedError()
-
-    async def check(self):
-        if not isinstance(self.doc.d["design"], elephant.ref.DocRef): raise TypeError()
-        if not isinstance(self.doc.d["quantity"], weaver.quantity.Quantity): raise TypeError()
-
-class BehaviorOrder(Behavior):
-
-    async def quantity_inventory(self, user):
-        raise NotImplementedError()
-
-    async def check(self):
-        if not isinstance(self.doc.d["quantity"], weaver.quantity.Quantity): raise TypeError()
-        if not isinstance(self.doc.d["arrival"], datetime.datetime): raise TypeError()
-
-class BehaviorRecipeInstance(Behavior):
-
-    async def quantity_order(self, user):
-        return self.doc.d["quantity"]
-
-    async def check(self):
-        if not isinstance(self.doc.d["recipeinstance_for"], elephant.ref.DocRef): raise TypeError()
-        #if not isinstance(self.doc.d["quantity"], weaver.quantity.Quantity): raise TypeError()
 
 class DesignInstance(elephant.global_.doc.Doc):
     """
@@ -77,17 +36,17 @@ class DesignInstance(elephant.global_.doc.Doc):
         super().__init__(e, d, _d, *args, **kwargs)
         self.d['_collection'] = 'weaver designinstances'
 
-    def behavior(self):
-        return {
-                DesignInstanceMode.INVENTORY:      BehaviorInventory(self),
-                DesignInstanceMode.DEMAND:         BehaviorDemand(self),
-                DesignInstanceMode.RECIPEINSTANCE: BehaviorRecipeInstance(self),
-                DesignInstanceMode.ORDER:          BehaviorOrder(self),
-                }[DesignInstanceMode(self.d["mode"])]
+    def init1(self):
+        self.d["behavior"].doc = self
 
     async def check(self):
         await self.check_0()
-        await self.behavior().check()
+
+        if not isinstance(self.d["design"], elephant.ref.DocRef):
+            raise TypeError()
+
+        if not isinstance(self.d["behavior"], weaver.designinstance.doc.behavior.Behavior):
+            raise TypeError(f'expected Behavior not {type(self.d["behavior"])}')
 
     @classmethod
     async def get_test_document(self, b0={}):
@@ -100,50 +59,13 @@ class DesignInstance(elephant.global_.doc.Doc):
         return await super().get_test_document(b1)
 
     async def check_0(self):
-        DesignInstanceMode(self.d["mode"])
+        #DesignInstanceMode(self.d["mode"])
+        pass
 
     async def update_temp(self, user):
         await super().update_temp(user)
 
         self.d["_temp"]["design"] = await self.get_design(user, temp=False)
-
-    async def quantity_recipeinstance_for(self, user):
-
-        d = await self.get_design(user)
-
-        ri = await self.get_recipeinstance_for(user)
-
-        if ri is None:
-            return weaver.quantity.Quantity(0, d.d.get("unit"))
-           
-        if not (await ri.is_planned(user)):
-            logger.info('DI demand type 1 not planned')
-            return weaver.quantity.Quantity(0, d.d.get("unit"))
-
-        r  = await ri.get_recipe(user)
-
-        q_r = await ri.quantity(user)
-
-        q_m = r.quantity(d)
-
-        q = q_r * q_m
-
-        u0 = d.d.get("unit", None)
-
-        # convert to the design units
-        q = q * (await d.conversion(q.unit, u0))
-
-        u1 = q.unit
-
-        logger.info("u0", u0)
-        logger.info("u1", u1)
-
-        assert (u1 is None) or isinstance(u1, weaver.quantity.unit.BaseUnit)
-
-        if not weaver.quantity.unit.unit_eq(u0, u1):
-            raise Exception(f'design unit ({u0!s}) does not equal ingredient unit ({u1!s})')
-
-        return q        
 
     async def quantity_demand(self, user):
         
