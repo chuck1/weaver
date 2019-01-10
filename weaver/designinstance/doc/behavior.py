@@ -115,7 +115,7 @@ class BehaviorRecipeinstance(Behavior):
         d = await self.doc.get_design(user)
 
         if ri is None:
-            raise Exception()
+            return None
            
         if not (await ri.is_planned(user)):
             logger.info('DI demand type 1 not planned')
