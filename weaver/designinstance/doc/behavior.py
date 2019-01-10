@@ -1,7 +1,10 @@
 import datetime
+import logging
 
 import elephant
 import weaver.quantity
+
+logger = logging.getLogger(__name__)
 
 class Behavior:
 
