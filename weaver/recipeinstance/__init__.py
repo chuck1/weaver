@@ -97,13 +97,12 @@ class RecipeInstance(elephant.global_.doc.Doc):
         for m in d2.d.get('materials', []):
             #logger.info(f'      {m.design!r}')
 
-            d3 = await self.e.manager.e_designinstances.find_one(
-                    user,
-                    {
-                        'design': m.design_ref,
-                        'recipeinstance_for': self.freeze(),
-                    },
-                    )
+            q0 = {
+                    'behavior.WeaverDesigninstanceBehaviorRecipeinstance.0': self.freeze(),
+                    'design': m.design_ref,
+                    }
+
+            d3 = await self.e.manager.e_designinstances.find_one(user, q0)
 
             if d3 is None:
                 logger.info('creating missing designinstance')
@@ -112,10 +111,12 @@ class RecipeInstance(elephant.global_.doc.Doc):
                         user,
                         None,
                         {
-                            'mode':   weaver.designinstance.doc.DesignInstanceMode.RECIPEINSTANCE.value,
+                            'behavior': weaver.designinstance.doc.behavior.BehaviorRecipeinstance(self.freeze()),
                             'design': m.design_ref,
-                            'recipeinstance_for': self.freeze(),
                         })
+ 
+                if (await self.e.manager.e_designinstances.find_one(user, q0)) is None:
+                    raise Exception()
 
             yield d3
 

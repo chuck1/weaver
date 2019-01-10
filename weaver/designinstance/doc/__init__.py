@@ -105,37 +105,6 @@ class DesignInstance(elephant.global_.doc.Doc):
 
         return 0
 
-    async def quantity_inventory(self, user):
-
-        return await self.behavior().quantity_inventory(user)
-        
-        assert not (('quantity' in self.d) and ('recipeinstance_for' in self.d))
-
-        if 'quantity' in self.d:
-            # type 0
-            return 0
-
-        # type 1
-        ri = await self.get_recipeinstance_for(user)
-
-        if ri.d.get('status', None) != weaver.recipeinstance.Status.COMPLETE:
-            return 0
-
-        # TODO instead of the following, consider creating INVENTORY mode design 
-        # instance upon recipeinstance completion
-
-        r  = await ri.get_recipe(user)
-
-        d  = await self.get_design(user)
-
-        q_r = await ri.quantity(user)
-
-        q_m = r.quantity(d)
-
-        q = q_r * q_m
-
-        return q        
-
     async def get_recipeinstance_for(self, user):
         if 'recipeinstance_for' not in self.d: return
 

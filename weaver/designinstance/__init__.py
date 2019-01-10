@@ -20,7 +20,9 @@ class Engine(weaver.engine.EngineGlobal):
         b1 = {
             "design":   design.freeze(),
             "behavior": weaver.designinstance.doc.behavior.BehaviorInventory(
-                weaver.quantity.Quantity(1, design.d.get("unit"))),
+                weaver.quantity.Quantity(1, design.d.get("unit")),
+                None,
+                ),
             }
 
         b1.update(b0)
