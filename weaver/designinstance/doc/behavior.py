@@ -104,7 +104,7 @@ class BehaviorRecipeinstance(Behavior):
 
         self.recipeinstance_for = recipeinstance_for
 
-    async def quantity_recipeinstance_for(self, user, recipeinstance_before):
+    async def quantity_recipeinstance_for(self, user, recipeinstance_before=None):
 
         ri = await self.doc.get_recipeinstance_for(user)
 
@@ -115,7 +115,7 @@ class BehaviorRecipeinstance(Behavior):
         d = await self.doc.get_design(user)
 
         if ri is None:
-            return weaver.quantity.Quantity(0, d.d.get("unit"))
+            raise Exception()
            
         if not (await ri.is_planned(user)):
             logger.info('DI demand type 1 not planned')

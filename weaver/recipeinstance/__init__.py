@@ -129,7 +129,14 @@ class RecipeInstance(elephant.global_.doc.Doc):
    
         di = await self.get_designinstance(user)
 
+        logger.info(f'di = {di}')
+        logger.info(f'     {di.d["behavior"]}')
+        logger.info(f'     {di.d["behavior"].quantity}')
+
         d = await di.get_design(user)
+
+        logger.info(f'd  = {d}')
+        logger.info(f'     {d.d.get("unit")}')
 
         q0 = await di.quantity_demand(user)
 

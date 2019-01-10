@@ -28,6 +28,9 @@ class Conversion:
 
         if not isinstance(f, (int, float)):
             raise Exception(f'expected float not {type(f)} {f!r}')
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}({self.unit_0}, {self.unit_1})'
    
     async def __encode__(self, h, user, mode):
         args = [self.unit_0, self.unit_1, self.f]
@@ -81,8 +84,8 @@ class Design(elephant.local_.doc.Doc):
             if not isinstance(tag, otter.subobjects.tag.Tag):
                 raise otter.CheckError(f"expected subobjects.tag.Tag got {tag!r} {type(tag)}")
 
-        logger.warning(
-            f'weaver design {self.d.get("description", "untitled")} {self.d["_temp"]["commits"][0].user} {self.d}')
+        #logger.warning(
+        #    f'weaver design {self.d.get("description", "untitled")} {self.d["_temp"]["commits"][0].user} {self.d}')
 
         if "target" in self.d:
             logger.warning("has target")
@@ -130,23 +133,18 @@ class Design(elephant.local_.doc.Doc):
         x (u1) = y (u10 * c (u1 / u0)
         """
         logger.info("conversion")
-        logger.info(f"{u0!r}")
-        logger.info(f"{u1!r}")
+        logger.info(f"u0 = {u0!r}")
+        logger.info(f"u1 = {u1!r}")
 
         if weaver.quantity.unit.unit_eq(u0, u1):
             return weaver.quantity.Quantity(1)
 
-        logger.info(f"{u0!r}")
-        logger.info(f"{u1!r}")
-        
-        logger.info("looking for")
         for c in self.d.get("conversions", []):
             logger.info(f"try {c!r}")
             if not weaver.quantity.unit.unit_eq(c.unit_0, u0): continue
             if not weaver.quantity.unit.unit_eq(c.unit_1, u1): continue
             return weaver.quantity.Quantity(c.f, weaver.quantity.unit.ComposedUnit([u1], [u0]))
 
-        logger.info("looking for")
         for c in self.d.get("conversions", []):
             logger.info(f"try {c!r}")
             if not weaver.quantity.unit.unit_eq(c.unit_0, u1): continue
@@ -164,9 +162,10 @@ class Design(elephant.local_.doc.Doc):
             raise TypeError()
 
         d.update({
-                'mode':     weaver.designinstance.doc.DesignInstanceMode.DEMAND.value,
                 'design':   self.freeze(),
-                'quantity': quantity,
+                'behavior': weaver.designinstance.doc.behavior.BehaviorDemand(
+                    quantity,
+                    ),
                 })
 
         di = await self.e.manager.e_designinstances.put(user, None, d)

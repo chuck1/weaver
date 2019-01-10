@@ -8,6 +8,7 @@ import pymongo
 
 import elephant.local_
 import weaver.recipeinstance
+from .behavior import *
 
 logger = logging.getLogger(__name__)
 
@@ -68,29 +69,20 @@ class DesignInstance(elephant.global_.doc.Doc):
         self.d["_temp"]["design"] = await self.get_design(user, temp=False)
 
     async def quantity_demand(self, user):
-        
-        assert not (('quantity' in self.d) and ('recipeinstance_for' in self.d))
-
+    
+        self.init1()
+    
         d  = await self.get_design(user)
-        u0 = d.d.get("unit", None)
-        assert (u0 is None) or isinstance(u0, weaver.quantity.unit.BaseUnit)
 
-        if 'quantity' in self.d:
-            # type 0
-            logger.debug(f'DI demand type 0. q = {self.d["quantity"]}')
+        if isinstance(self.d["behavior"], BehaviorDemand):
+            y = await self.d["behavior"].quantity_demand(user)
+            y = y * await d.conversion(y.unit, d.d.get("unit"))
+            return y
 
-            q = self.d['quantity']
-            q = q * (await d.conversion(q.unit, u0))
-
-            print("assert equal")
-            print(u0)
-            print(q.unit)
-
-            if not weaver.quantity.unit.unit_eq(u0, q.unit):
-                raise Exception(f"Units must be equal. {u0!s} and {q.unit!s}")
-            return q
-
-        return await self.quantity_recipeinstance_for(user)
+        if isinstance(self.d["behavior"], BehaviorRecipeinstance):
+            y = await self.d["behavior"].quantity_recipeinstance_for(user)
+            y = y * await d.conversion(y.unit, d.d.get("unit"))
+            return y
 
     async def cost(self, user):
 
@@ -106,11 +98,12 @@ class DesignInstance(elephant.global_.doc.Doc):
         return 0
 
     async def get_recipeinstance_for(self, user):
-        if 'recipeinstance_for' not in self.d: return
+        if not isinstance(self.d["behavior"], BehaviorRecipeinstance):
+            raise Exception()
 
         d0 = await self.e.manager.e_recipeinstances.find_one_by_ref(
                 user,
-                self.d['recipeinstance_for'],
+                self.d["behavior"].recipeinstance_for,
                 )
 
         if d0 is None:
