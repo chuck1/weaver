@@ -10,6 +10,7 @@ setup(name='weaver',
         license='MIT',
         packages=[
             'weaver',
+            'weaver.unit',
             ],
         zip_safe=False,
         )
