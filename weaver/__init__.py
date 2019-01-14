@@ -44,12 +44,17 @@ class DesignRef:
         self.D = weaver.quantity.Quantity(0, self.d.get("unit", None))
         self.R = weaver.quantity.Quantity(0, self.d.get("unit", None))
 
+        # lists to store designinstances
+        self.lines_inventory = []
+
     def quantity_buy(self):
         O = self.O # target inventory
         T = self.T # threadhold
         I = self.I # actual inventory
         R = self.R # demand for recipeinstances
         D = self.D # manual demand
+
+        
 
         logger.info(f'description = {self.d.d.get("description")}')
         logger.info(f'unit        = {self.d.d.get("unit")}')
@@ -86,6 +91,7 @@ class DesignRef:
     async def __encode__(self, h, user, mode):
         args = [
 		self.d,
+                self.lines_inventory,
                 self.I,
                 self.quantity_buy(),
                 ]
@@ -119,6 +125,16 @@ class PurchaseLine:
         part = manager.e_designs.get_content(self.part['ref'], {'_id': self.part_id})
         cost = part['cost'] * self.q
         print(f'{part["description"]} {cost}')
+
+class LineInventory:
+    def __init__(self, di, y):
+        self.di = di
+        self.y = y
+
+    async def __encode__(self, h, user, mode):
+        args = [self.di, self.y]
+        args = await elephant.util.encode(h, user, mode, args)
+        return {self.__class__.__name__: args}
 
 class Manager:
     def __init__(self, db, h):
@@ -268,7 +284,9 @@ class Manager:
 
             y = await di.d["behavior"].quantity_inventory(user)
 
-            if y is not None: dr.I += y
+            if y is not None:
+                dr.lines_inventory.append(LineInventory(di, y))
+                dr.I += y
  
             # RECIPEINSTANCE
 
