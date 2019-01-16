@@ -4,13 +4,13 @@ import elephant.local_.doc
 import weaver.engine
 
 class Unit(elephant.global_.doc.Doc):
-    def __init__(self, e, d, _d):
-        super().__init__(e, d, _d)
+    def __init__(self, e, d, _d, is_subobject, ):
+        super().__init__(e, d, _d, is_subobject, )
         self.d["_collection"] = "weaver units"
 
 class Query(elephant.local_.doc.Doc):
-    def __init__(self, e, d, _d):
-        super().__init__(e, d, _d)
+    def __init__(self, e, d, _d, is_subobject, ):
+        super().__init__(e, d, _d, is_subobject, )
         self.d["_collection"] = "weaver units queries"
 
 class EngineQuery(weaver.engine.EngineLocal):

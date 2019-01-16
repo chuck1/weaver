@@ -7,10 +7,10 @@ class EngineLocal(elephant.local_.Engine):
         self.manager = manager
         self.h = manager.h
 
-    async def _factory(self, d, *args):
-        o = self._doc_class(self, await self.manager.h.decode(d), d, *args)
-        o.h = self.h
-        return o
+    #async def _factory(self, d, *args):
+    #    o = self._doc_class(self, await self.manager.h.decode(d), d, *args)
+    #    o.h = self.h
+    #    return o
 
 class EngineGlobal(elephant.global_.Engine):
     def __init__(self, manager, coll, ref, e_queries=None):
@@ -18,10 +18,10 @@ class EngineGlobal(elephant.global_.Engine):
         self.manager = manager
         self.h = manager.h
 
-    async def _factory(self, d, *args):
-        o = self._doc_class(self, await self.manager.h.decode(d), d, *args)
-        o.h = self.h
-        return o
+    #async def _factory(self, d, *args):
+    #    o = self._doc_class(self, await self.manager.h.decode(d), d, *args)
+    #    o.h = self.h
+    #    return o
 
 
 

@@ -32,8 +32,8 @@ class MaterialsList:
             yield weaver.material.Material(k, q)
 
 class Recipe(elephant.local_.doc.Doc):
-    def __init__(self, e, d, _d):
-        super().__init__(e, d, _d)
+    def __init__(self, e, d, _d, is_subobject, ):
+        super().__init__(e, d, _d, is_subobject, )
         self.d["_collection"] = "weaver recipes"
 
     async def temp_materials(self, user):
